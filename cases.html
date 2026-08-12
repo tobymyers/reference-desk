@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cases · The Scaling Reference Desk</title>
+<script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
+<style>
+  :root{ --ink:#1a1a1a; --mid:#555; --lt:#999; --line:#2b2b2b; --soft:#e9e9e9; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"Courier New", Courier, monospace; background:#f2f2f2; color:var(--ink);
+    height:100vh; display:flex; flex-direction:column; overflow:hidden; font-size:13.5px; line-height:1.45;
+  }
+  button{font-family:inherit; cursor:pointer;}
+
+  .wf-header{background:#fff; border-bottom:2px solid var(--line); padding:9px 18px; flex-shrink:0; display:flex; align-items:baseline; gap:14px;}
+  .wf-header h1{font-size:15px; letter-spacing:.5px;}
+  .toggle{margin-left:auto; font-size:11px; color:var(--mid); display:flex; align-items:center; gap:6px; user-select:none;}
+
+  .tabs{display:flex; background:#fff; border-bottom:2px solid var(--line); padding:0 18px; flex-shrink:0;}
+  .tab-btn{background:#f7f7f7; border:2px solid var(--line); border-bottom:none; padding:7px 16px; font-size:12.5px; margin:6px 6px 0 0; color:var(--mid);}
+  .tab-btn.active{background:#fff; color:var(--ink); font-weight:bold; position:relative; top:2px;}
+  .tab-pane{flex:1; min-height:0; display:none; overflow-y:auto;}
+  .tab-pane.active{display:flex; flex-direction:column;}
+
+  .tq{display:none; font-size:10.5px; background:#1a1a1a; color:#fff; padding:2px 8px; margin:4px 0; letter-spacing:.3px;}
+  body.show-tq .tq{display:inline-block;}
+
+  /* ---- agent ---- */
+  .chatwrap{flex:1; overflow-y:auto; padding:16px 12%;}
+  .msg{margin-bottom:14px; max-width:84%;}
+  .msg.user{margin-left:auto;}
+  .msg .who{font-size:10.5px; color:var(--lt); margin-bottom:2px; text-transform:uppercase; letter-spacing:.5px;}
+  .msg.user .who{text-align:right;}
+  .bub{border:2px solid var(--line); background:#fff; padding:9px 13px;}
+  .msg.user .bub{background:var(--soft);}
+  .acard{border:2px solid var(--line); background:#fff; max-width:560px;}
+  .acard .ahead{border-bottom:2px solid var(--line); padding:12px 16px; display:flex; gap:12px; align-items:center;}
+  .acard .logo{width:38px; height:38px; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;}
+  .acard h2{font-size:15px; letter-spacing:.5px;}
+  .acard .stats{font-size:11px; color:var(--mid);}
+  .acard .abody{padding:12px 16px;}
+  .acard .abody p{margin-bottom:9px;}
+  .acard .cred{font-size:12px; color:var(--mid); border-left:3px solid var(--line); padding-left:9px;}
+  .acard .aactions{border-top:1px solid #aaa; padding:10px 16px; display:flex; gap:8px; flex-wrap:wrap;}
+  .wbtn{border:2px solid var(--line); background:#fff; padding:5px 12px; font-size:12px;}
+  .wbtn:hover{background:var(--soft);}
+  .wbtn.solid{background:var(--ink); color:#fff;}
+  .chips{padding:6px 12%; display:flex; gap:8px; flex-wrap:wrap;}
+  .chips .lbl{width:100%; font-size:10.5px; color:var(--mid); text-transform:uppercase; letter-spacing:.5px;}
+  .chip{border:2px solid var(--line); background:#fff; padding:6px 12px; font-size:12px;}
+  .chip:hover{background:var(--soft);}
+  .composer{padding:8px 12% 14px;}
+  .composer .box{display:flex; border:2px solid var(--line); background:#fff;}
+  .composer input{flex:1; border:none; outline:none; font-family:inherit; font-size:13px; padding:9px 12px;}
+  .composer button{border:none; border-left:2px solid var(--line); background:#fff; padding:0 16px; font-size:15px;}
+  .result{border:2px solid var(--line); background:#fff; padding:12px 14px;}
+  .result .k{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--mid); border-bottom:1px solid #ccc; padding-bottom:4px; margin-bottom:8px;}
+  .result .base{font-weight:bold; margin-bottom:8px;}
+  .result ul{margin:0 0 9px 18px;}
+  .result li{margin:3px 0;}
+  .result .q{font-style:italic; border-left:3px solid var(--line); padding-left:10px; margin-bottom:10px;}
+  .btnrow{display:flex; gap:8px; flex-wrap:wrap;}
+
+  .slotcard{border:2px solid var(--line); background:#fff; padding:11px 13px;}
+  .slotcard .sc-lede{margin-bottom:9px;}
+  .slotcard .sc-row{margin-bottom:8px;}
+  .slotcard .sc-k{font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--mid); margin-bottom:4px;}
+  .slotchip{border:1.5px solid #888; background:#fff; padding:3px 10px; font-size:11.5px; margin:0 5px 5px 0;}
+  .slotchip.sel{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .brief{font-size:11px; color:var(--mid); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;}
+  .brief button{border:none; background:none; text-decoration:underline; font-size:10.5px; color:var(--mid); padding:0; text-transform:none; letter-spacing:0;}
+  .matchnote{color:#777; font-size:11.5px;}
+
+  /* ---- patterns ---- */
+  .inner{padding:16px 24px 40px; max-width:1080px; margin:0 auto; width:100%;}
+  .freshline{font-size:11.5px; color:var(--mid); margin-bottom:4px;}
+  .pt-lede{font-size:13px; margin:0 0 14px;}
+  .patgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:16px; align-items:start;}
+  .pattern{border:2px solid var(--line); background:#fff; display:flex; flex-direction:column;}
+  .pattern .art{border-bottom:2px solid var(--line); background:#fff;}
+  .pattern .art svg{display:block; width:100%; height:auto;}
+  .pattern .art img{display:block; width:100%; height:auto;}
+  .pattern .phead{padding:11px 14px 2px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .pattern .phead h3{font-size:14px;}
+  .pattern .phead .n{font-size:11px; color:var(--mid);}
+  .pattern .pbody{padding:8px 14px 14px;}
+  .pattern .pbase{font-weight:bold; margin-bottom:10px;}
+  .minicase{border:1px solid #888; margin-bottom:9px; padding:9px 12px; background:#fafafa;}
+  .minicase .mrow{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .minicase h4{font-size:13px;}
+  .stage{font-size:9.5px; border:1.5px solid var(--line); padding:1px 7px; letter-spacing:.8px;}
+  .stage.exited{background:var(--ink); color:#fff;}
+  .minicase .worked{margin-top:5px; font-size:12.5px;}
+  .minicase .worked b{background:#e4e4e4; padding:0 3px;}
+  .minicase .go{border:none; background:none; text-decoration:underline; font-size:11.5px; padding:0; margin-top:5px; font-weight:bold; cursor:pointer;}
+  .stubline{font-size:11.5px; color:var(--mid); font-style:italic; margin-bottom:4px;}
+
+  /* big video clip */
+  .bigclip{border:2px solid var(--line); margin-bottom:11px; background:#fff;}
+  .vidph{aspect-ratio:16/7.5; background:repeating-linear-gradient(45deg,#fff,#fff 8px,#efefef 8px,#efefef 16px);
+    display:flex; align-items:center; justify-content:center; position:relative; border-bottom:2px solid var(--line);}
+  .playbig{width:62px; height:62px; border:3px solid var(--line); background:#fff; font-size:22px;}
+  .durbadge{position:absolute; bottom:8px; right:10px; border:1.5px solid var(--line); padding:1px 8px; font-size:10.5px; background:#fff;}
+  .bigclip .cq{padding:10px 13px 3px; font-size:13.5px; font-style:italic;}
+  .bigclip .cwho{padding:0 13px; font-size:11px; color:var(--mid); text-transform:uppercase; letter-spacing:.5px;}
+  .bigclip .ctx{padding:6px 13px 11px;}
+  .bigclip .ctx button{border:none; background:none; text-decoration:underline; font-size:11.5px; padding:0; font-weight:bold;}
+
+  /* ---- cases index ---- */
+  .curveblock{border:2px solid var(--line); background:#fff; margin-bottom:16px; padding:10px 12px 6px;}
+  .curveblock .cb-h{font-size:11px; color:var(--mid); text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px;}
+  .curveblock svg{display:block; width:100%; height:auto;}
+  .curveblock svg text{font-family:"Courier New", Courier, monospace;}
+  .caserow{border:2px solid var(--line); background:#fff; margin-bottom:10px; padding:11px 14px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  .caserow h3{font-size:14px;}
+  .caserow .one{font-size:12px; color:var(--mid);}
+  .caserow .validated{font-size:11px; color:var(--mid); margin-left:auto;}
+
+  /* ---- case view (native) ---- */
+  #caseview{display:none; flex:1; min-height:0; flex-direction:column;}
+  .casebar{display:flex; align-items:center; gap:12px; padding:8px 14px; background:#fff; border-bottom:2px solid var(--line); font-size:12px; flex-shrink:0;}
+  .casebar .t{font-weight:bold; letter-spacing:.5px;}
+  #casescroll{flex:1; overflow-y:auto; background:#fff;}
+  .cs-wrap{max-width:860px; margin:0 auto; padding:22px 22px 60px;}
+  .cs-eyebrow{font-size:10.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mid);}
+  .cs-wrap h1{font-size:24px; line-height:1.2; margin:8px 0 6px;}
+  .cs-dek{color:var(--mid); font-size:13.5px; max-width:64ch; margin-bottom:6px;}
+  .cs-byline{font-size:11.5px; color:var(--mid); margin-bottom:16px;}
+  .cs-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1px; background:#bbb; border-top:2px solid var(--ink); border-bottom:1px solid #bbb; margin:6px 0 20px;}
+  .cs-stat{background:#fff; padding:11px 13px 9px;}
+  .cs-stat b{display:block; font-size:20px; line-height:1.15;}
+  .cs-stat span{font-size:11px; color:var(--mid);}
+  .cs-sticky{position:sticky; top:0; z-index:5; background:#fff; padding:4px 0 2px; border-bottom:2px solid var(--line);}
+  .cs-sticky .hint{font-size:10.5px; color:var(--mid); margin:2px 2px 5px;}
+  .cs-sticky svg{display:block; width:100%; height:auto;}
+  .cs-sticky svg text{font-family:"Courier New", Courier, monospace;}
+  .ms{cursor:pointer;}
+  .chapter{padding:30px 0 4px; max-width:66ch;}
+  .chapter h2{font-size:19px; margin:0 0 2px;}
+  .chapter .years{font-size:10.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mid); display:block; margin-bottom:10px;}
+  .chapter p{margin:0 0 12px;}
+  .beat{border-left:3px solid #bbb; padding:2px 0 2px 14px; margin:16px 0;}
+  .beat.gatebeat{border-left-color:var(--ink);}
+  .beat h3{font-size:14.5px; margin:0 0 4px;}
+  .beat .byear{font-weight:bold; font-size:11.5px; letter-spacing:.5px; margin-right:8px; border:1.5px solid var(--line); padding:0 5px;}
+  .beat p{margin:0 0 6px; color:#333;}
+  .cite{display:inline; border:0; background:transparent; padding:0 1px; cursor:pointer; font-size:11px; color:var(--ink);
+    border-bottom:1.5px dotted var(--ink); white-space:nowrap; font-weight:bold;}
+  .cite:hover{border-bottom-style:solid; background:var(--soft);}
+  figure.datafig{margin:22px 0; border:2px solid var(--line); background:#fff; padding:12px 12px 6px;}
+  figure.datafig figcaption{font-size:11.5px; color:var(--mid); padding:6px 4px 4px;}
+  figure.datafig svg text{font-family:"Courier New", Courier, monospace;}
+  figure.photo{margin:22px 0; border:2px dashed #999; padding:28px 16px; text-align:center; color:var(--mid); font-size:11.5px;}
+  figure.clipcase{margin:22px 0; border:2px solid var(--line); border-left:5px solid var(--ink); background:#fafafa; padding:12px 14px 8px;}
+  .clip-row{display:flex; gap:13px; align-items:flex-start;}
+  .clipcase .play{width:54px; height:54px; flex-shrink:0; border:2.5px solid var(--line); background:#fff; font-size:18px;}
+  .clipcase .clip-meta{font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:var(--mid); margin-bottom:3px; font-weight:bold;}
+  .clipcase .clip-quote{font-size:13.5px; line-height:1.5; margin:0 0 6px; font-style:italic;}
+  .clipcase details{font-size:11.5px; color:var(--mid);}
+  .clipcase summary{cursor:pointer; font-weight:bold; color:var(--ink);}
+  .clipcase figcaption{font-size:10.5px; color:var(--mid); padding-top:7px;}
+  .godeeper{margin-top:40px; border:2px solid var(--line); background:#fafafa; padding:16px 18px;}
+  .godeeper .h{font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mid); font-weight:bold; margin-bottom:10px;}
+  .gd-row{display:flex; gap:14px; align-items:flex-start; margin-bottom:12px;}
+  .gd-avatar{width:56px; height:56px; border:2px dashed #999; display:flex; align-items:center; justify-content:center; font-size:9.5px; color:var(--lt); flex-shrink:0; text-align:center;}
+  .gd-note{font-size:12px; color:var(--mid); margin-top:3px;}
+  .cs-foot{margin-top:30px; font-size:11px; line-height:1.6; color:var(--mid); border-top:2px solid var(--ink); padding-top:10px; max-width:86ch;}
+  .cs-foot p{margin:4px 0;}
+
+  /* popover / modal / toast / tip */
+  #pop{position:fixed; z-index:50; width:min(400px, calc(100vw - 30px)); border:2px solid var(--line); background:#fff; padding:12px 14px; display:none; font-size:12px;}
+  #pop .s{font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--mid); margin-bottom:5px;}
+  #pop blockquote{border-left:3px solid var(--line); padding-left:9px; font-style:italic; margin-bottom:8px;}
+  #pop .close{float:right; border:none; background:none; font-size:14px; color:var(--mid);}
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:60; display:none; align-items:center; justify-content:center;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff; border:2px solid var(--line); width:min(540px,94vw); padding:18px 20px;}
+  .modal h2{font-size:15px; margin-bottom:4px;}
+  .modal .ms{font-size:11.5px; color:var(--mid); margin-bottom:12px;}
+  .modal .mx{float:right; border:none; background:none; font-size:15px;}
+  .modal textarea{width:100%; border:2px solid var(--line); font-family:inherit; font-size:12.5px; padding:9px 11px; min-height:100px; line-height:1.5;}
+  .mbtns{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+  #toast{position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(70px); border:2px solid var(--line); background:#fff; padding:8px 16px; font-size:12px; transition:transform .2s; z-index:99; max-width:480px; text-align:center;}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  #tip{position:fixed; pointer-events:none; z-index:70; display:none; background:var(--ink); color:#fff; font-size:11px; line-height:1.4; padding:5px 8px; max-width:250px;}
+  @media (max-width:800px){ .chatwrap,.chips,.composer{padding-left:4%;padding-right:4%;} }
+</style>
+</head>
+<body>
+<!-- ================= THE CASES ================= -->
+<section class="tab-pane active" id="tab-cases">
+  <div class="inner" id="caseindex">
+    <p class="pt-lede"><b>THE CASES</b> — every case travels the same curve. The markers show how far each one has come.</p>
+
+    <div class="curveblock">
+      <div class="cb-h">The journey curve &middot; 25 cases &middot; click a marker to open its case</div>
+      <div id="indexcurve"></div>
+    </div>
+    <div class="tq" style="margin-bottom:10px;">TEST: does the curve position change which case they open first? Does EXITED read as a finding, not a failure?</div>
+
+    <div class="caserow">
+      <h3>CONSERVATION EASEMENTS</h3><span class="stage">SCALING</span>
+      <span class="one">135 yrs &middot; 20.2M acres &middot; the payer is the US tax code</span>
+      <span class="validated">validated by [TNC expert name]</span>
+      <button class="wbtn solid" onclick="openCase()">open the case &rarr;</button>
+    </div>
+    <div class="caserow">
+      <h3>WATER FUNDS</h3><span class="stage">SCALING</span>
+      <span class="one">~25 yrs &middot; recurring downstream payer</span>
+      <span class="validated">validated by [TNC expert name]</span>
+      <button class="wbtn" onclick="toast('This case page is coming — a new case ships every 2 weeks.')">open the case &rarr;</button>
+    </div>
+    <div class="caserow">
+      <h3>NATURE BONDS</h3><span class="stage">VALIDATING</span>
+      <span class="one">10 yrs in &middot; single-close deals, replication stalled</span>
+      <span class="validated">validated by [TNC expert name]</span>
+      <button class="wbtn" onclick="toast('This case page is coming — a new case ships every 2 weeks.')">open the case &rarr;</button>
+    </div>
+    <div class="caserow">
+      <h3>GRASS BANKS</h3><span class="stage exited">EXITED</span>
+      <span class="one">18 yrs, then a responsible exit &middot; in-kind payer didn't travel</span>
+      <span class="validated">validated by [TNC expert name]</span>
+      <button class="wbtn" onclick="toast('This case page is coming — a new case ships every 2 weeks.')">open the case &rarr;</button>
+    </div>
+    <div class="stubline" style="margin-top:6px;">+ 21 more cases &middot; new case every 2 weeks</div>
+  </div>
+
+  <!-- ============ CASE VIEW (native) ============ -->
+  <div id="caseview">
+    <div class="casebar">
+      <button class="wbtn" onclick="closeCase()">&larr; all cases</button>
+      <span class="t">CASE &middot; CONSERVATION EASEMENTS</span>
+      <span class="stage" style="margin-left:6px;">SCALING</span>
+    </div>
+    <div id="casescroll">
+      <div class="cs-wrap">
+        <div class="cs-eyebrow">Scaling Solutions Library &middot; Reference Case</div>
+        <h1>How conservation easements reached scale</h1>
+        <p class="cs-dek">From one Boston land trust in 1891 to twenty million acres today, told along the curve every case in this library shares. Dotted-underline citations open the verified source quote.</p>
+        <div class="cs-byline">Evidence: 26 sources, every quote verified against the original page &middot; <b>Validated by [TNC expert name], [role]</b></div>
+
+        <div class="cs-stats">
+          <div class="cs-stat"><b>135 yrs</b><span>and counting, from the first land trust (1891)</span></div>
+          <div class="cs-stat"><b>20.2M</b><span>acres under land trust easement, 2020</span></div>
+          <div class="cs-stat"><b>1,281</b><span>active land trusts, 2020</span></div>
+          <div class="cs-stat"><b>US tax code</b><span>the payer at scale, since 1976</span></div>
+        </div>
+
+        <div class="cs-sticky">
+          <div id="casecurve"></div>
+          <div class="hint">The curve is schematic and identical for every case. Time lives in the labels. Click a marker to jump to that part of the story.</div>
+        </div>
+
+        <section class="chapter" id="ch1" data-ms="0,1,2">
+          <h2>Beginnings</h2>
+          <span class="years">Emerging &middot; 1891 to 1959 &middot; 68 years</span>
+          <p>The story starts with an organization, not a legal tool. In 1891, landscape architect Charles Eliot persuaded Massachusetts to charter The Trustees of Reservations, the first private group whose whole mission was to hold land for the public <button class="cite" data-q="q1891">Brewer 2004, p. 31</button>. The easement itself appeared soon after, in parkway projects near Boston, but for decades it stayed a curiosity.</p>
+          <div class="beat">
+            <h3><span class="byear">1930s&ndash;40s</span>The federal government tries it</h3>
+            <p>The National Park Service bought easements along the Blue Ridge and Natchez Trace parkways, about 6,000 acres of protected views <button class="cite" data-q="qnps">Cheever &amp; McLaughlin 2015, p. 11</button>. Then it gave up. Friction with landowners and weak court support pushed the agency back to buying land outright in the 1950s <button class="cite" data-q="qnpsexit">Cheever &amp; McLaughlin 2015, p. 11</button>. The era's only large adopter had exited.</p>
+          </div>
+          <div class="beat">
+            <h3><span class="byear">1951</span>Wisconsin proves the price point</h3>
+            <p>A highway project along the Mississippi bought easements for about $15 an acre. Comparable land purchases cost $35 to $45. The economic argument now had numbers behind it (Whyte 1959, pp. 21&ndash;22).</p>
+          </div>
+          <figure class="photo">Photo slot &middot; suggestion: a Blue Ridge Parkway overlook, or the Trustees of Reservations' first property</figure>
+        </section>
+
+        <section class="chapter" id="ch2" data-ms="3,4">
+          <h2>A name, a law, and a tax ruling</h2>
+          <span class="years">Transition &middot; Emerging to Validating &middot; 1959 to 1965</span>
+          <p>No committee voted to advance this field. Instead, three reinforcing events arrived within six years, and together they moved it.</p>
+          <div class="beat gatebeat">
+            <h3><span class="byear">1959</span>Whyte makes the public case</h3>
+            <p>William H. Whyte's report for the Urban Land Institute named the "conservation easement" and argued for it, "probably the first time an entire publication had been devoted to explaining and promoting this then-obscure conservation tool" <button class="cite" data-q="qwhyte">Felmlee 2009, p. 96</button>. California passed the first easement statute that July. In Monterey County, a citizens' campaign gathered pledges covering 4,000 acres in ten weeks <button class="cite" data-q="qmonterey">Whyte 1959, p. 24</button>.</p>
+          </div>
+          <div class="beat gatebeat">
+            <h3><span class="byear">1964</span>The IRS opens the tax door</h3>
+            <p>A revenue ruling allowed a charitable deduction for donating an easement <button class="cite" data-q="qirs">Cheever &amp; McLaughlin 2015, p. 12</button>. Donation, not purchase, would become the fuel. By 1979, forty states had enabling laws <button class="cite" data-q="q40states">Cheever &amp; McLaughlin 2015, p. 12</button>.</p>
+          </div>
+        </section>
+
+        <section class="chapter" id="ch3" data-ms="5">
+          <h2>Quiet validation</h2>
+          <span class="years">Validating &middot; 1965 to 1976 &middot; about a decade</span>
+          <p>The tool spread state by state. Massachusetts wrote its conservation restriction act in 1969. Land trusts multiplied from about 130 in the mid sixties to over 300 by 1975 <button class="cite" data-q="qcounts">Brewer 2004, p. 53</button>. The environmental movement was blossoming, and the model kept proving itself in new places. What it still lacked was a national engine.</p>
+        </section>
+
+        <section class="chapter" id="ch4" data-ms="6,7,8">
+          <h2>The scaling cluster</h2>
+          <span class="years">Transition &middot; Validating to Scaling &middot; 1976 to 1982</span>
+          <p>Six years changed everything. Law, standard, and organization arrived together, each built by people whose names we know.</p>
+          <div class="beat gatebeat">
+            <h3><span class="byear">1976</span>Congress writes it into law</h3>
+            <p>The Tax Reform Act created a statutory deduction for easement gifts, made permanent in 1980 as section 170(h) <button class="cite" data-q="q1976">Looney 2017, p. 5</button>. At the 1980 hearings, Samuel Morris testified on behalf of nineteen land trusts <button class="cite" data-q="qmorris">McLaughlin 2010, p. 13</button>. The demand engine was locked in.</p>
+          </div>
+
+          <figure class="clipcase">
+            <div class="clip-row">
+              <button class="play" onclick="toast('stub: plays the interview clip, opening at the quoted moment')">&#9654;</button>
+              <div>
+                <div class="clip-meta">Clip &middot; 0:58 &middot; [TNC expert name], [role]</div>
+                <p class="clip-quote">"Everyone hunts for a donor. This case says: the fundraising problem was solved by lawyers, not fundraisers."</p>
+                <details><summary>Prefer text? Read the transcript</summary><p>[Transcript excerpt — 2&ndash;3 sentences from the interview, verbatim, with a link to the full transcript and the recording timestamp.]</p></details>
+              </div>
+            </div>
+            <figcaption>The expert speaking to this exact moment in the story.</figcaption>
+          </figure>
+
+          <div class="beat gatebeat">
+            <h3><span class="byear">1981</span>One model law for every state</h3>
+            <p>A drafting committee appointed in 1978 finished the Uniform Conservation Easement Act in 1981 <button class="cite" data-q="qucea">Burnett 2013, p. 3</button>. Any state could now adopt a ready-made statute. Simple enough for thousands of future adopters.</p>
+          </div>
+          <div class="beat gatebeat">
+            <h3><span class="byear">1981</span>The movement organizes itself</h3>
+            <p>That October, about forty organizations met in Cambridge for the National Consultation on Local Land Conservation <button class="cite" data-q="qconsult">Brewer 2004, p. 49</button>. Out of it came the Land Trust Exchange, later the Land Trust Alliance, with Allan Spader as its first director <button class="cite" data-q="qlte">Brewer 2004, p. 190</button>.</p>
+          </div>
+        </section>
+
+        <section class="chapter" id="ch5" data-ms="9,10,11,12,13,14">
+          <h2>Scale, and its bills</h2>
+          <span class="years">Scaling &middot; 1982 to today &middot; 45 years and running</span>
+          <p>The new machinery met a political shock it did not create. The Reagan administration slashed federal land-buying funds, and communities turned to easements instead. One scholar put it plainly: the laws behind easements "were lobbied for and passed at the height of Reagan-era deregulation and reform" <button class="cite" data-q="qwatt">Kay 2016, p. 11</button>.</p>
+          <div class="beat">
+            <h3><span class="byear">1985&ndash;88</span>The boom</h3>
+            <p>Land trust formation hit its fastest rate ever, about 16 percent a year <button class="cite" data-q="qboom">Johnson 2014, p. 7</button>. New trusts appeared at one or more per week into the mid nineties <button class="cite" data-q="qweek">Johnson 2014, p. 6</button>.</p>
+          </div>
+
+          <figure class="datafig">
+            <div id="fig-acres"></div>
+            <figcaption><b>Figure 1.</b> Acres under land trust easement, 1980 to 2020, from Land Trust Alliance census data. The dashed line adds government and national holders, counted by the National Conservation Easement Database from 2014. Hover any point for its source.</figcaption>
+          </figure>
+
+          <div class="beat">
+            <h3><span class="byear">2003&ndash;05</span>The crisis</h3>
+            <p>Scale had outrun quality control. A Washington Post investigation led to a Senate inquiry into The Nature Conservancy's practices; TNC suspended several activities within weeks <button class="cite" data-q="qcrisis">Senate Finance Committee 2005, p. 41</button>. Scientists documented the deeper gap: nearly all easements were checked for legal compliance, but only one in five had their biology measured <button class="cite" data-q="qmonitor">Kiesecker et al. 2007, p. 2</button>.</p>
+          </div>
+
+          <figure class="clipcase">
+            <div class="clip-row">
+              <button class="play" onclick="toast('stub: plays the interview clip, opening at the quoted moment')">&#9654;</button>
+              <div>
+                <div class="clip-meta">Clip &middot; 1:12 &middot; [TNC expert name], [role]</div>
+                <p class="clip-quote">"The same incentive that scaled the tool nearly discredited it. The correction had to come from inside the field — and it did."</p>
+                <details><summary>Prefer text? Read the transcript</summary><p>[Transcript excerpt — 2&ndash;3 sentences from the interview, verbatim, with a link to the full transcript and the recording timestamp.]</p></details>
+              </div>
+            </div>
+            <figcaption>The expert speaking to this exact moment in the story.</figcaption>
+          </figure>
+
+          <div class="beat">
+            <h3><span class="byear">2006&ndash;08</span>The correction</h3>
+            <p>The field built its own quality gate. The Land Trust Alliance stood up an independent accreditation commission <button class="cite" data-q="qaccred">Felmlee 2009, p. 17</button>. By 2020, accredited trusts held 81 percent of all protected land <button class="cite" data-q="q81">Land Trust Alliance, 2020 census</button>.</p>
+          </div>
+          <div class="beat">
+            <h3><span class="byear">2010s</span>Fewer, bigger, more professional</h3>
+            <p>The number of land trusts peaked around 1,723 in 2010 and has consolidated since, down to 1,281 by 2020, even as protected acreage kept climbing. The field traded breadth of organizations for depth of capacity.</p>
+          </div>
+
+          <figure class="datafig">
+            <div id="fig-trusts"></div>
+            <figcaption><b>Figure 2.</b> Active land trusts in the United States, 1940 to 2020, Land Trust Alliance census lineage. The hollow point is Alliance membership in 2026, a narrower measure. Hover any point for its source.</figcaption>
+          </figure>
+
+          <div class="beat">
+            <h3><span class="byear">Today</span>The instrument at scale</h3>
+            <p>Land trusts hold easements on 20.2 million acres <button class="cite" data-q="q2020">Land Trust Alliance, 2020 census</button>. Counting all holders, the national database records 221,256 easements over roughly 38 million acres <button class="cite" data-q="qnced">Richardson et al. 2026, p. 39</button>. The scaling phase has not ended.</p>
+          </div>
+          <figure class="photo">Photo slot &middot; suggestion: a working farm or ranch under easement today, people in the frame</figure>
+        </section>
+
+        <div class="godeeper">
+          <div class="h">Go deeper with a person</div>
+          <div class="gd-row">
+            <div class="gd-avatar">photo</div>
+            <div>
+              <b>[Case contact name]</b> — [role: 30 years in land conservation policy; interviewed for this case]
+              <div class="gd-note">Read the case and still have questions? [First name] has agreed to take these conversations — that's part of what makes this a library and not an archive.</div>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="wbtn solid" onclick="bookTime()">book 20 minutes</button>
+            <button class="wbtn" onclick="open2('handoffModal')">send a drafted intro</button>
+          </div>
+          <div class="tq" style="margin-top:8px;">TEST: after reading, do they book, send, or neither? Which case sections do bookers mention?</div>
+        </div>
+
+        <div class="cs-foot">
+          <p><b>Method.</b> Every figure and dated claim traces to a 26-source evidence corpus in which each quote was verified verbatim against the source page. Citations open the exact supporting quote. The curve is schematic: stage widths are fixed by the framework so cases of different lengths read as the same shape, and durations are printed in the labels.</p>
+          <p><b>Data notes.</b> The acreage series is the Land Trust Alliance census lineage, one scope, with the LTA's latest published revisions governing. The 2026 membership count (948) is a narrower measure than active land trusts and is never placed on the same curve. All-methods totals (61 million acres in 2020) are excluded from the easement curve.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- popover / modals / toast / tip -->
+<div id="pop"><button class="close" onclick="hidePop()">&#10005;</button><div class="s" id="pop-s"></div><blockquote id="pop-q"></blockquote></div>
+
+<div class="overlay" id="handoffModal">
+  <div class="modal">
+    <button class="mx" onclick="close2('handoffModal')">&#10005;</button>
+    <h2>WARM INTRO (drafted for you)</h2>
+    <div class="ms">Edit anything, then send.</div>
+    <textarea>Hi [contact] — [me] just read the Conservation Easements case in the Scaling Reference Desk and is facing a similar decision. They'd value 20 minutes on how it really went — especially what you'd avoid repeating. OK to connect?</textarea>
+    <div class="tq">TEST: do they send it? (Acceptance = the tool grafts onto the peer network.)</div>
+    <div class="mbtns"><button class="wbtn" onclick="close2('handoffModal')">cancel</button><button class="wbtn solid" onclick="sendIntro()">send</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="tip"></div>
+<script>
+"use strict";
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show')},3000);}
+function open2(id){document.getElementById(id).classList.add('open');}
+function close2(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+const QUOTES = {
+  q1891:{t:"this was the first private organization that included the essential feature of a land trust: a mission dedicated to acquiring, holding, and maintaining natural, scenic, and historic sites.", s:"Richard Brewer, Conservancy: The Land Trust Movement in America (2004), p. 31. Verified verbatim."},
+  qnps:{t:"During the 1930s and 1940s, the National Park Service purchased easements encumbering almost 1,500 acres in Virginia and North Carolina to protect scenic vistas along the Blue Ridge Parkway, and easements encumbering another 4,500 acres in Mississippi, Alabama, and Tennessee to protect scenic vistas along the Natchez Trace Parkway.", s:"Cheever & McLaughlin, Journal of Law, Property, and Society (2015), p. 11. Verified verbatim."},
+  qnpsexit:{t:"As a result of friction with landowners, difficulty in policing the easements, and difficulty in persuading courts to grant injunctive relief, the National Park Service discontinued its practice of purchasing scenic easements along the parkways in the 1950's and turned to a full fee simple purchase program.", s:"Cheever & McLaughlin (2015), p. 11. Verified verbatim."},
+  qwhyte:{t:"It was probably the first time an entire publication had been devoted to explaining and promoting this then-obscure conservation tool", s:"Felmlee, Georgetown University thesis (2009), p. 96, describing Whyte's 1959 bulletin. Verified verbatim."},
+  qmonterey:{t:"in June (1959); by August 10th gifts of 4,000 acres had been pledged.", s:"William H. Whyte, Securing Open Space for Urban America (1959), p. 24, on the Monterey County campaign. Verified verbatim (two adjoining lines)."},
+  qirs:{t:"In 1964, the IRS published a Revenue Ruling authorizing a federal charitable income tax deduction for the donation of a conservation easement to the United States for the purpose of protecting scenic land adjacent to a federal highway.", s:"Cheever & McLaughlin (2015), p. 12. Verified verbatim."},
+  q40states:{t:"By 1979, 40 states had enacted some type of conservation easement enabling statute.", s:"Cheever & McLaughlin (2015), p. 12. Verified verbatim."},
+  qcounts:{t:"Six years earlier, in 1975, only about 308 (or somewhat fewer) were in existence.", s:"Brewer (2004), p. 53. The mid-sixties figure of about 132 appears on the same page. Verified verbatim."},
+  q1976:{t:"Tax benefits for gifts of conservation easements were first enacted in the Tax Reform Act of 1976 and the Tax Reduction and Simplification Act of 1977, and extended permanently in 1980 with the Tax Treatment Extension Act, which created IRC section 170(h).", s:"Looney, Brookings / IRS SOI working paper (2017), p. 5. Verified verbatim."},
+  qmorris:{t:"(written statement of Samuel W. Morris, President, French and Pickering Creeks Conservation Trust, Inc., Pottstown, Pa., July 1, 1980, submitted on behalf of nineteen land trusts)", s:"McLaughlin, Real Property, Trust and Estate Law Journal (2010), p. 13. Verified verbatim."},
+  qucea:{t:"The Drafting Committee for the Uniform Conservation Easement Act (UCEA, or the Act) was appointed in 1978 and completed its work in 1981.", s:"Burnett, Utah Law Review (2013), p. 3. The author served on the committee. Verified verbatim."},
+  qconsult:{t:"Held in Cambridge in October 1981, it included representatives of about forty organizations including about two dozen land trusts.", s:"Brewer (2004), p. 49. Verified verbatim."},
+  qlte:{t:"The concept became the Land Trust Exchange and Spader became the first executive director.", s:"Brewer (2004), p. 190. Verified verbatim."},
+  qwatt:{t:"It is no coincidence that the laws which underpinned and expanded the use of easements were lobbied for and passed at the height of Reagan-era deregulation and reform.", s:"Kay, Environment and Planning A (2016), p. 11. Verified verbatim."},
+  qboom:{t:"the growth rate was at its highest, about 16%, from 1985–1988", s:"Johnson, Lincoln Institute of Land Policy (2014), p. 7, drawing on Brewer's analysis. Verified verbatim."},
+  qweek:{t:"The slow increase in the number of land trusts began to accelerate, from the mid 1980's to the mid 1990's, as new land trusts were formed at the rate of one or more per week", s:"Johnson (2014), p. 6. Verified verbatim."},
+  qcrisis:{t:"In May 2003, following The Washington Post series, TNC announced the suspension of certain activities until its next regularly scheduled Board meeting that was held on June 13, 2003.", s:"U.S. Senate Finance Committee staff report on The Nature Conservancy (2005), p. 41. Verified verbatim."},
+  qmonitor:{t:"Although 92% of sampled easements have been monitored for legal compliance in the past 3 years, only 19.8% of biological targets have been monitored quantitatively.", s:"Kiesecker et al., Frontiers in Ecology and the Environment (2007), p. 2. Verified verbatim."},
+  qaccred:{t:"Throughout 2005 and 2006, the LTA developed and established the LTAC as a separate nonprofit entity that would be dedicated to the planning, implementation, and enforcement of land trust accreditation.", s:"Felmlee (2009), p. 17. Verified verbatim."},
+  q81:{t:"PERCENT OF LAND OWNED AND UNDER EASEMENT HELD BY AN ACCREDITED LAND TRUST 81% Source: 2020 National Land Trust Census", s:"Land Trust Alliance, Conservation Progress: United States (2020 census data; captured 2026). Verified verbatim from the page text."},
+  q2020:{t:"Under easement 12,837,451 16,572,307 20,236,888 +58%", s:"Land Trust Alliance, Conservation Progress: United States. The three values are 2010, 2015, and 2020. Verified verbatim from the page text."},
+  qnced:{t:"According to the National Conservation Easement Database (2026), as of February 2026, approximately 38 million acres (15.3 m ha) were protected under 221,256 easements.", s:"Richardson et al., Cambridge Elements (2026), p. 39. Verified verbatim."}
+};
+const pop=document.getElementById('pop');
+document.addEventListener('click',ev=>{
+  const c=ev.target.closest('.cite');
+  if(c){
+    const q=QUOTES[c.dataset.q];
+    if(q){
+      document.getElementById('pop-q').textContent=q.t;
+      document.getElementById('pop-s').textContent=q.s;
+      pop.style.display='block';
+      const r=c.getBoundingClientRect();
+      pop.style.left=Math.max(15,Math.min(r.left,innerWidth-420))+'px';
+      pop.style.top=(r.bottom+8+200>innerHeight? Math.max(10,r.top-8-pop.offsetHeight): r.bottom+8)+'px';
+    }
+    ev.stopPropagation(); return;
+  }
+  if(!ev.target.closest('#pop')) hidePop();
+});
+function hidePop(){pop.style.display='none';}
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')hidePop();});
+/* ---------- tooltip ---------- */
+const tip=document.getElementById('tip');
+const tipShow=(ev,html)=>{tip.style.display='block';tip.style.left=(ev.clientX+14)+'px';tip.style.top=(ev.clientY-10)+'px';tip.innerHTML=html;};
+const tipHide=()=>tip.style.display='none';
+/* ---------- shared curve math ---------- */
+const svgel=(n,at)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',n);for(const k in at)e.setAttribute(k,at[k]);return e;};
+const impact=f=>Math.pow(f,3.4)*0.96+0.02;
+
+function drawBands(svg,W,SXf,zoneBot,withDur){
+  const zones=[
+    {x0:.02,x1:.30,c:'#f6f6f6',label:'EMERGING',dur:'68 YEARS'},
+    {x0:.375,x1:.555,c:'#ededed',label:'VALIDATING',dur:'≈11 YEARS'},
+    {x0:.665,x1:.985,c:'#e3e3e3',label:'SCALING',dur:'45 YEARS, ONGOING'},
+  ];
+  const gates=[{x0:.30,x1:.375,label:'1959–65'},{x0:.555,x1:.665,label:'1976–82'}];
+  for(const z of zones){
+    svg.appendChild(svgel('rect',{x:SXf(z.x0),y:8,width:SXf(z.x1)-SXf(z.x0),height:zoneBot-8,fill:z.c}));
+    const t=svgel('text',{x:(SXf(z.x0)+SXf(z.x1))/2,y:22,'text-anchor':'middle','font-size':11,'font-weight':700,'letter-spacing':'2',fill:'#1a1a1a'});
+    t.textContent=z.label; svg.appendChild(t);
+    if(withDur){
+      const d=svgel('text',{x:(SXf(z.x0)+SXf(z.x1))/2,y:36,'text-anchor':'middle','font-size':9,'font-weight':600,fill:'#999'});
+      d.textContent=z.dur; svg.appendChild(d);
+    }
+  }
+  for(const g of gates){
+    for(const gx of [g.x0,g.x1])
+      svg.appendChild(svgel('line',{x1:SXf(gx),x2:SXf(gx),y1:8,y2:zoneBot,stroke:'#999','stroke-width':1.2,'stroke-dasharray':'2 5'}));
+    const gl=svgel('text',{x:(SXf(g.x0)+SXf(g.x1))/2,y:22,'text-anchor':'middle','font-size':8,'letter-spacing':'.8',fill:'#999'});
+    gl.textContent='TRANSITION'; svg.appendChild(gl);
+    if(withDur){
+      const gd=svgel('text',{x:(SXf(g.x0)+SXf(g.x1))/2,y:36,'text-anchor':'middle','font-size':9,'font-weight':600,fill:'#777'});
+      gd.textContent=g.label; svg.appendChild(gd);
+    }
+  }
+}
+function drawCurvePath(svg,SXf,SYf,endF){
+  let d='';
+  for(let i=0;i<=120;i++){const f=0.02+(endF-0.02)*i/120; d+=(i?'L':'M')+SXf(f).toFixed(1)+' '+SYf(f).toFixed(1)+' ';}
+  svg.appendChild(svgel('path',{d,fill:'none',stroke:'#1a1a1a','stroke-width':2.6,'stroke-linecap':'round'}));
+  svg.appendChild(svgel('path',{d:`M ${SXf(endF)} ${SYf(endF)} l -13 2 l 5 -7 z`,fill:'#1a1a1a'}));
+}
+/* the EXITED band + the off-ramps that curve down from each transition */
+function drawExitBand(svg,SXf,SYf,bandTop,bandBot,darkRamp){
+  const x0=SXf(0.02), x1=SXf(0.985);
+  svg.appendChild(svgel('rect',{x:x0,y:bandTop,width:x1-x0,height:bandBot-bandTop,fill:'#f1f1f1'}));
+  svg.appendChild(svgel('line',{x1:x0,x2:x1,y1:bandTop,y2:bandTop,stroke:'#999','stroke-width':1.2,'stroke-dasharray':'2 5'}));
+  const lb=svgel('text',{x:x0+10,y:(bandTop+bandBot)/2+4,'font-size':11,'font-weight':700,'letter-spacing':'2',fill:'#777'});
+  lb.textContent='EXITED'; svg.appendChild(lb);
+  const note=svgel('text',{x:x1-8,y:(bandTop+bandBot)/2+4,'text-anchor':'end','font-size':9,fill:'#999'});
+  note.textContent='a finding, not a failure'; svg.appendChild(note);
+  const ends={};
+  [{f:0.3375,key:'t1'},{f:0.61,key:'t2'}].forEach(r=>{
+    const cx=SXf(r.f), cy=SYf(r.f);
+    const ex=cx+46, ey=bandTop+16;
+    const dark = darkRamp===r.key;
+    svg.appendChild(svgel('path',{d:`M ${cx} ${cy} Q ${cx+30} ${cy+(ey-cy)*0.55} ${ex} ${ey}`,
+      fill:'none',stroke:dark?'#555':'#b5b5b5','stroke-width':dark?2:1.8,'stroke-dasharray':'4 4','stroke-linecap':'round'}));
+    svg.appendChild(svgel('path',{d:`M ${ex} ${ey} l -8 -3 l 3 7 z`,fill:dark?'#555':'#b5b5b5'}));
+    ends[r.key]={ex,ey};
+  });
+  return ends;
+}
+
+/* ---------- index curve: one curve, case markers ---------- */
+const IDX_CASES=[
+  {name:'Conservation Easements', f:0.94, built:true, lab:'above'},
+  {name:'Water Funds', f:0.80, lab:'below'},
+  {name:'Nature Bonds', f:0.60, lab:'above'},
+];
+function drawIndexCurve(){
+  const host=document.getElementById('indexcurve'); host.innerHTML='';
+  const W=980,H=300,STOP=30,zoneBot=244,bandTop=254,bandBot=292;
+  const plotH=zoneBot-STOP;
+  const SXf=f=>18+f*(W-36);
+  const SYf=f=>STOP+plotH-impact(f)*plotH;
+  const svg=svgel('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',role:'img','aria-label':'The shared journey curve with each case marked at its current position, and an exited band below with off-ramps at each transition'});
+  host.appendChild(svg);
+  drawBands(svg,W,SXf,zoneBot,false);
+  const ends=drawExitBand(svg,SXf,SYf,bandTop,bandBot,'t2');
+  drawCurvePath(svg,SXf,SYf,0.962);
+  IDX_CASES.forEach(c=>{
+    const x=SXf(c.f), y=SYf(c.f);
+    const g=svgel('g',{class:'ms',tabindex:0,role:'button','aria-label':c.name});
+    g.appendChild(svgel('circle',{cx:x,cy:y,r:15,fill:'transparent'}));
+    g.appendChild(svgel('circle',{cx:x,cy:y,r:6.5,fill:'#1a1a1a',stroke:'#fff','stroke-width':2}));
+    const above=c.lab==='above';
+    const lab=svgel('text',{x:x,y:above?y-14:y+24,'text-anchor':'end','font-size':10.5,'font-weight':700,fill:'#1a1a1a'});
+    lab.textContent=c.name.toUpperCase(); svg.appendChild(lab);
+    const act=()=>{ if(c.built) openCase(); else toast('This case page is coming — a new case ships every 2 weeks.'); };
+    g.addEventListener('click',act);
+    g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();act();}});
+    g.addEventListener('mousemove',ev=>tipShow(ev,`<b>${c.name}</b>`));
+    g.addEventListener('mouseleave',tipHide);
+    svg.appendChild(g);
+  });
+  /* Grass Banks: sits at the end of the second off-ramp, inside the EXITED band */
+  const gp=ends.t2;
+  const gg=svgel('g',{class:'ms',tabindex:0,role:'button','aria-label':'Grass Banks — exited at the scaling attempt'});
+  gg.appendChild(svgel('circle',{cx:gp.ex,cy:gp.ey,r:15,fill:'transparent'}));
+  gg.appendChild(svgel('circle',{cx:gp.ex,cy:gp.ey,r:6,fill:'#fff',stroke:'#1a1a1a','stroke-width':2.2}));
+  const gl=svgel('text',{x:gp.ex+13,y:gp.ey+4,'text-anchor':'start','font-size':10.5,'font-weight':700,fill:'#1a1a1a'});
+  gl.textContent='GRASS BANKS'; svg.appendChild(gl);
+  gg.addEventListener('click',()=>toast('This case page is coming — a new case ships every 2 weeks.'));
+  gg.addEventListener('mousemove',ev=>tipShow(ev,'<b>Grass Banks</b> · took the off-ramp at the scaling attempt'));
+  gg.addEventListener('mouseleave',tipHide);
+  svg.appendChild(gg);
+}
+/* ---------- case curve: milestones ---------- */
+const MS=[
+  {sx:0.055,y:1891,t:'First land trust',s:'E',ch:'ch1'},
+  {sx:0.15, y:1938,t:'Parkway easements, then a federal exit',s:'E',ch:'ch1'},
+  {sx:0.235,y:1951,t:'Wisconsin proves the price point',s:'E',ch:'ch1'},
+  {sx:0.315,y:1959,t:"Whyte's case, California's law",s:'G',ch:'ch2'},
+  {sx:0.355,y:1964,t:'The IRS opens the tax door',s:'G',ch:'ch2'},
+  {sx:0.46, y:1969,t:'State by state',s:'V',ch:'ch3'},
+  {sx:0.575,y:1976,t:'Congress writes it into law',s:'G',ch:'ch4'},
+  {sx:0.61, y:1980,t:'Section 170(h) made permanent',s:'G',ch:'ch4'},
+  {sx:0.645,y:1981,t:'Model law; the movement organizes',s:'G',ch:'ch4'},
+  {sx:0.70, y:1983,t:'Riding the backlash',s:'S',ch:'ch5'},
+  {sx:0.75, y:1987,t:'The boom',s:'S',ch:'ch5'},
+  {sx:0.82, y:2004,t:'The crisis',s:'S',ch:'ch5'},
+  {sx:0.865,y:2006,t:'The correction',s:'S',ch:'ch5'},
+  {sx:0.915,y:2012,t:'Consolidation',s:'S',ch:'ch5'},
+  {sx:0.962,y:2026,t:'The instrument at scale',s:'S',ch:'ch5'},
+];
+let msNodes=[];
+function drawCaseCurve(){
+  const host=document.getElementById('casecurve'); host.innerHTML=''; msNodes=[];
+  const W=980,H=278,STOP=30,zoneBot=222,bandTop=232,bandBot=268;
+  const plotH=zoneBot-STOP;
+  const SXf=f=>18+f*(W-36);
+  const SYf=f=>STOP+plotH-impact(f)*plotH;
+  const svg=svgel('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',role:'img','aria-label':'The journey curve with clickable milestones for this case; the exited band below shows the off-ramps this case did not take'});
+  host.appendChild(svg);
+  drawBands(svg,W,SXf,zoneBot,true);
+  drawExitBand(svg,SXf,SYf,bandTop,bandBot,null);
+  drawCurvePath(svg,SXf,SYf,0.962);
+  MS.forEach((m,i)=>{
+    const x=SXf(m.sx), y=SYf(m.sx);
+    const g=svgel('g',{class:'ms',tabindex:0,role:'button','aria-label':m.y+': '+m.t});
+    g.appendChild(svgel('circle',{cx:x,cy:y,r:12,fill:'transparent'}));
+    let mark;
+    if(m.s==='G'){ mark=svgel('path',{d:`M ${x} ${y-6.5} L ${x+6.5} ${y} L ${x} ${y+6.5} L ${x-6.5} ${y} Z`,fill:'#1a1a1a',stroke:'#fff','stroke-width':1.6}); }
+    else if(m.s==='E'){ mark=svgel('circle',{cx:x,cy:y,r:5,fill:'#fff',stroke:'#1a1a1a','stroke-width':2}); }
+    else { mark=svgel('circle',{cx:x,cy:y,r:5,fill:'#1a1a1a',stroke:'#fff','stroke-width':1.8}); }
+    g.appendChild(mark);
+    const labY = (y > zoneBot-36) ? y-11 : (i%2 ? y+20 : y-11);
+    const lab=svgel('text',{x:x,y:labY,'text-anchor':'middle','font-size':9,'font-weight':600,fill:'#555'});
+    lab.textContent=m.y; svg.appendChild(lab);
+    const act=()=>document.getElementById(m.ch).scrollIntoView();
+    g.addEventListener('click',act);
+    g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();act();}});
+    g.addEventListener('mousemove',ev=>tipShow(ev,`<b>${m.y}</b> ${m.t}`));
+    g.addEventListener('mouseleave',tipHide);
+    svg.appendChild(g);
+    msNodes.push(mark);
+  });
+}
+function spy(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(!en.isIntersecting)return;
+      const ids=(en.target.dataset.ms||'').split(',').map(Number);
+      msNodes.forEach((n,i)=>{
+        const on=ids.includes(i);
+        if(n.tagName==='circle')n.setAttribute('r',on?7:5);
+        n.setAttribute('opacity',on?1:0.65);
+      });
+    });
+  },{root:document.getElementById('casescroll'),rootMargin:'-30% 0px -55% 0px'});
+  document.querySelectorAll('.chapter').forEach(c=>obs.observe(c));
+}
+
+/* ---------- case figures (monochrome) ---------- */
+const acresLTA=[
+  {y:1980,v:0.128,n:'128,000 acres. McLaughlin 2005 / Kay 2016, from LTA data.'},
+  {y:1990,v:0.456,n:'456,000 acres. McLaughlin 2005, from LTA data.'},
+  {y:2000,v:2.5,n:'2.5 million acres. LTA census, cited in four sources.'},
+  {y:2005,v:6.113,n:'6,113,108 acres. LTA 2015 Census Report.'},
+  {y:2010,v:12.837,n:'12,837,451 acres. LTA Conservation Progress page (latest revision).'},
+  {y:2015,v:16.572,n:'16,572,307 acres. LTA Conservation Progress page (latest revision).'},
+  {y:2020,v:20.237,n:'20,236,888 acres. LTA 2020 National Land Trust Census.'},
+];
+const acresNCED=[
+  {y:2014,v:22.2,n:'22.2M acres recorded (NCED estimated 40M in total). Cheever & McLaughlin 2015.'},
+  {y:2026,v:38.0,n:'About 38M acres, 221,256 easements. Richardson et al. 2026, from NCED.'},
+];
+const trusts=[
+  {y:1940,v:30,n:'30 or more per LTA lineage; Brewer adjusts to about 19.'},
+  {y:1950,v:53,n:'53 per LTA census; Brewer suggests about 50.'},
+  {y:1965,v:132,n:'About 132. Brewer 2004, p. 53.'},
+  {y:1975,v:308,n:'About 308. Brewer 2004, p. 53.'},
+  {y:1981,v:404,n:'404 reported at the first census (revised 431; Brewer adjusts to about 370).'},
+  {y:1984,v:535,n:'535. LTA census, via Parker 2019.'},
+  {y:1990,v:885,n:'885. LTA census, via Parker 2019.'},
+  {y:2000,v:1263,n:'1,263. LTA 2000 census, via Brewer 2004.'},
+  {y:2005,v:1667,n:'More than 1,650. LTA 2005 census.'},
+  {y:2010,v:1723,n:'1,723. LTA census (verified against LTA publications).'},
+  {y:2015,v:1363,n:'1,363. LTA 2015 census.'},
+  {y:2020,v:1281,n:'1,281. LTA 2020 census.'},
+];
+function lineFig(hostId,series,opts){
+  const FW=900,FH=250,PL=56,PR=110,PT=16,PB=32;
+  const host=document.getElementById(hostId); host.innerHTML='';
+  const svg=svgel('svg',{viewBox:`0 0 ${FW} ${FH}`,width:'100%',role:'img','aria-label':opts.aria});
+  host.appendChild(svg);
+  const X=y=>PL+(y-opts.x0)/(opts.x1-opts.x0)*(FW-PL-PR);
+  const Y=v=>PT+(FH-PT-PB)*(1-v/opts.max);
+  for(const t of opts.ticks){
+    svg.appendChild(svgel('line',{x1:PL,x2:FW-PR,y1:Y(t),y2:Y(t),stroke:'#e2e2e2','stroke-width':1}));
+    const lb=svgel('text',{x:PL-8,y:Y(t)+3.5,'text-anchor':'end','font-size':10,fill:'#888'});
+    lb.textContent=opts.fmt(t); svg.appendChild(lb);
+  }
+  for(let yr=opts.xt0;yr<=opts.x1;yr+=opts.xstep){
+    const t=svgel('text',{x:X(yr),y:FH-10,'text-anchor':'middle','font-size':10,fill:'#888'});
+    t.textContent=yr; svg.appendChild(t);
+  }
+  series.forEach(s=>{
+    const d=s.pts.map((p,i)=>(i?'L':'M')+X(p.y).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+    svg.appendChild(svgel('path',{d,fill:'none',stroke:'#1a1a1a','stroke-width':2.2,'stroke-dasharray':s.dash||'none','stroke-linejoin':'round','stroke-linecap':'round'}));
+    s.pts.forEach(p=>{
+      const g=svgel('g',{});
+      g.appendChild(svgel('circle',{cx:X(p.y),cy:Y(p.v),r:10,fill:'transparent'}));
+      g.appendChild(svgel('circle',{cx:X(p.y),cy:Y(p.v),r:4,fill:s.hollow?'#fff':'#1a1a1a',stroke:'#1a1a1a','stroke-width':s.hollow?2:0}));
+      g.addEventListener('mousemove',ev=>tipShow(ev,`<b>${p.y}</b><br>${p.n}`));
+      g.addEventListener('mouseleave',tipHide);
+      svg.appendChild(g);
+    });
+    if(s.label){
+      const last=s.pts[s.pts.length-1];
+      const lb=svgel('text',{x:X(last.y)+8,y:Y(last.v)+4,'font-size':10,fill:'#555'});
+      lb.textContent=s.label; svg.appendChild(lb);
+    }
+  });
+}
+function drawFigures(){
+  lineFig('fig-acres',[
+    {pts:acresLTA,label:'Land trusts (LTA)'},
+    {pts:acresNCED,dash:'7 6',label:'All holders (NCED)'},
+  ],{x0:1975,x1:2030,xt0:1980,xstep:10,max:40,ticks:[0,10,20,30,40],fmt:t=>t+'M',aria:'Acres under easement, 1980 to 2020, with the broader all-holders series from 2014'});
+  lineFig('fig-trusts',[
+    {pts:trusts},
+    {pts:[{y:2026,v:948,n:'948 Alliance members in 2026, a narrower measure than active trusts.'}],hollow:true,label:'948 members'},
+  ],{x0:1935,x1:2030,xt0:1940,xstep:20,max:1800,ticks:[0,600,1200,1800],fmt:t=>t.toLocaleString('en-US'),aria:'Active land trusts, 1940 to 2020, with 2026 membership shown separately'});
+}
+
+/* ---------- case open/close ---------- */
+let caseDrawn=false;
+function openCase(){
+  document.getElementById('caseindex').style.display='none';
+  document.getElementById('caseview').style.display='flex';
+  if(!caseDrawn){ drawCaseCurve(); drawFigures(); spy(); caseDrawn=true; }
+  document.getElementById('casescroll').scrollTop=0;
+}
+function closeCase(){
+  document.getElementById('caseview').style.display='none';
+  document.getElementById('caseindex').style.display='block';
+}
+
+/* ---------- Teams integration ---------- */
+function initTeams(onSub){
+  function fromQuery(){var p=new URLSearchParams(location.search).get('sub'); if(p) onSub(p);}
+  try{
+    if(window.microsoftTeams && microsoftTeams.app){
+      microsoftTeams.app.initialize().then(function(){
+        return microsoftTeams.app.getContext();
+      }).then(function(ctx){
+        var sub=(ctx && ctx.page && ctx.page.subPageId)||'';
+        if(sub) onSub(sub); else fromQuery();
+        try{ microsoftTeams.app.notifySuccess(); }catch(e){}
+      }).catch(fromQuery);
+    } else fromQuery();
+  }catch(e){ fromQuery(); }
+}
+
+/* ---------- go deeper: real links ---------- */
+/* Set these when the real Bookings page / case contact exist. */
+var BOOKINGS_URL = "";                       // e.g. https://outlook.office.com/bookwithme/...
+var CONTACT_EMAIL = "toby.myers@producepay.com"; // demo: opens a chat with yourself
+function bookTime(){
+  if(BOOKINGS_URL){ openExternal(BOOKINGS_URL); }
+  else toast('Booking link coming — the case contact\u2019s Bookings page goes here.');
+}
+function sendIntro(){
+  var text=document.querySelector('#handoffModal textarea').value;
+  var url='https://teams.microsoft.com/l/chat/0/0?users='+encodeURIComponent(CONTACT_EMAIL)+'&message='+encodeURIComponent(text);
+  openExternal(url);
+  close2('handoffModal');
+}
+function openExternal(url){
+  try{
+    if(window.microsoftTeams && microsoftTeams.app && microsoftTeams.app.openLink){
+      microsoftTeams.app.openLink(url); return;
+    }
+  }catch(e){}
+  window.open(url,'_blank');
+}
+drawIndexCurve();
+initTeams(function(sub){
+  if(/^case:easements$/.test(sub)){ openCase(); }
+  else if(/^pattern:/.test(sub)){
+    location.href='patterns.html?sub='+encodeURIComponent(sub);
+  }
+});
+</script>
+</body>
+</html>
