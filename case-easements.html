@@ -1130,5 +1130,20 @@
 })();
 </script>
 
+<script>
+/* Deep-link assist: re-scroll to the URL hash after the charts render shift the layout
+   (native anchor jump fires before the master curve is drawn). */
+(function () {
+  "use strict";
+  function jump() {
+    var h = location.hash.replace(/^#/, "");
+    if (!h) return;
+    var el = document.getElementById(h);
+    if (el) el.scrollIntoView({ block: "start" });
+  }
+  window.addEventListener("load", function () { setTimeout(jump, 250); });
+})();
+</script>
+
 </body>
 </html>

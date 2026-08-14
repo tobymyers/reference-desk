@@ -758,7 +758,8 @@ function openExternal(url){
 }
 drawIndexCurve();
 initTeams(function(sub){
-  if(/^case:easements$/.test(sub)){ openCase(); }
+  var cm=/^case:easements(?:#([A-Za-z0-9_-]+))?$/.exec(sub);
+  if(cm){ location.href='case-easements.html'+(cm[1]?'#'+cm[1]:''); }
   else if(/^pattern:/.test(sub)){
     location.href='patterns.html?sub='+encodeURIComponent(sub);
   }
