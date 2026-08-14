@@ -709,10 +709,9 @@ function drawFigures(){
 /* ---------- case open/close ---------- */
 let caseDrawn=false;
 function openCase(){
-  document.getElementById('caseindex').style.display='none';
-  document.getElementById('caseview').style.display='flex';
-  if(!caseDrawn){ drawCaseCurve(); drawFigures(); spy(); caseDrawn=true; }
-  document.getElementById('casescroll').scrollTop=0;
+  /* The easements case now lives on its own page (from easements-case-standalone.html);
+     the embedded #caseview below is retired and unreachable. */
+  location.href='case-easements.html';
 }
 function closeCase(){
   document.getElementById('caseview').style.display='none';

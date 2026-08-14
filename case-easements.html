@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conservation Easements · Scaling Journey</title>
+</head>
+<body>
+<style>
+  :root {
+    --bg: #ffffff; --card: #f2f7f2; --ink: #1c2b21; --ink2: #48584e; --muted: #71806f;
+    --grid: #e4eae4; --border: #d5ded5; --hair: #cbd6cb;
+    --blue: #17607d; --amber: #9c6d0e; --green: #2e7b3c;
+    --band-e: rgba(156,109,14,.06); --band-v: rgba(23,96,125,.05); --band-s: rgba(73,169,66,.09);
+    --gateband: rgba(90,110,95,.10);
+    --gate: #8fa093; --curve: #243b2c; --pop-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151a16; --card: #1f261f; --ink: #e8ede8; --ink2: #bcc7bd; --muted: #8b988c;
+      --grid: #2c342c; --border: #38423a; --hair: #435043;
+      --blue: #5fb0ce; --amber: #d19a2f; --green: #7cc98a;
+      --band-e: rgba(209,154,47,.08); --band-v: rgba(95,176,206,.07); --band-s: rgba(124,201,138,.12);
+      --gateband: rgba(139,152,140,.13);
+      --gate: #68766b; --curve: #d9e0d8; --pop-bg: #232b24;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151a16; --card: #1f261f; --ink: #e8ede8; --ink2: #bcc7bd; --muted: #8b988c;
+    --grid: #2c342c; --border: #38423a; --hair: #435043;
+    --blue: #5fb0ce; --amber: #d19a2f; --green: #7cc98a;
+    --band-e: rgba(209,154,47,.08); --band-v: rgba(95,176,206,.07); --band-s: rgba(124,201,138,.12);
+    --gateband: rgba(139,152,140,.13);
+    --gate: #68766b; --curve: #d9e0d8; --pop-bg: #232b24;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --card: #f2f7f2; --ink: #1c2b21; --ink2: #48584e; --muted: #71806f;
+    --grid: #e4eae4; --border: #d5ded5; --hair: #cbd6cb;
+    --blue: #17607d; --amber: #9c6d0e; --green: #2e7b3c;
+    --band-e: rgba(156,109,14,.06); --band-v: rgba(23,96,125,.05); --band-s: rgba(73,169,66,.09);
+    --gateband: rgba(90,110,95,.10);
+    --gate: #8fa093; --curve: #243b2c; --pop-bg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 18px/1.66 "Iowan Old Style", "Palatino Nova", Palatino, Georgia, serif; }
+  .sans { font-family: "Seravek", "Gill Sans Nova", "Avenir Next", "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 30px 22px 70px; }
+  .eyebrow { font: 600 11px/1 "Seravek", "Avenir Next", system-ui, sans-serif; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--green); }
+  h1 { font: 800 34px/1.12 "Seravek", "Gill Sans Nova", "Avenir Next", "Segoe UI", system-ui, sans-serif; letter-spacing: -.015em; margin: 10px 0 8px; text-wrap: balance; }
+  .byline { font: 400 12.5px/1.5 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted); margin-bottom: 22px; }
+
+  /* stat block */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px;
+    background: var(--hair); border-top: 3px solid var(--green); border-bottom: 1px solid var(--hair); margin: 8px 0 26px; }
+  .stat { background: var(--bg); padding: 14px 16px 12px; }
+  .stat b { display: block; font: 700 26px/1.1 "Seravek", "Avenir Next", system-ui, sans-serif;
+    font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .stat span { font: 400 12px/1.45 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted); }
+
+  /* sticky master curve + finder */
+  .master { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 6px 0 0;
+    border-bottom: 1px solid var(--hair); }
+  svg { display: block; }
+  svg text { font-family: "Seravek", "Avenir Next", "Segoe UI", system-ui, sans-serif; }
+  .ms { cursor: pointer; }
+  .finder { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 4px 2px 8px;
+    font: 400 11.5px/1.4 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted); }
+  .finder .lg { font-weight: 700; letter-spacing: .06em; margin-right: 10px; }
+  .lg.actor { color: var(--green); } .lg.path { color: var(--blue); } .lg.watch { color: var(--amber); }
+  .findertoggle { margin-left: auto; border: 0; background: var(--green); color: var(--bg);
+    border-radius: 8px; padding: 8px 15px; cursor: pointer; font: 700 12px/1 "Seravek", "Avenir Next", system-ui, sans-serif;
+    letter-spacing: .03em; }
+  .findertoggle:hover { filter: brightness(1.12); }
+  .findertoggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .finderpanel { border-top: 1px solid var(--hair); padding: 10px 2px 14px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 22px; }
+  .fgroup h4 { margin: 4px 0 6px; font: 700 10px/1 "Seravek", "Avenir Next", system-ui, sans-serif;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .fitem { display: block; width: 100%; text-align: left; border: 0; background: none; cursor: pointer;
+    padding: 3px 0; font: 500 12.5px/1.4 "Seravek", "Avenir Next", system-ui, sans-serif; }
+  .fitem small { color: var(--muted); font-weight: 400; }
+  .fitem.actor { color: var(--green); } .fitem.path { color: var(--blue); } .fitem.watch { color: var(--amber); }
+  .fitem:hover { text-decoration: underline; }
+  .fitem:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* marginalia sideheads */
+  .sidewrap { position: relative; }
+  .sideheads { display: flex; flex-wrap: wrap; gap: 13px; margin: 16px 0 4px; }
+  .sh { border: 0; background: none; padding: 0; cursor: pointer; text-align: left;
+    font: 700 10px/1.35 "Seravek", "Avenir Next", system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; }
+  .sh.actor { color: var(--green); } .sh.path { color: var(--blue); } .sh.watch { color: var(--amber); }
+  .sh:hover { text-decoration: underline; }
+  .sh:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  @media (min-width: 1120px) {
+    .sideheads { position: absolute; left: calc(100% + 46px); top: 5px; width: 175px;
+      flex-direction: column; gap: 7px; margin: 0; }
+  }
+  .tagged { scroll-margin-top: 330px; }
+  .chapter { scroll-margin-top: 310px; }
+  @media (max-width: 640px) { .tagged { scroll-margin-top: 235px; } .chapter { scroll-margin-top: 220px; } }
+  .flash { outline: 2px solid var(--green); outline-offset: 8px; border-radius: 4px; }
+
+  /* chapters */
+  .chapter { padding: 34px 0 6px; max-width: 62ch; }
+  .chapter h2 { font: 700 22px/1.2 "Seravek", "Gill Sans Nova", "Avenir Next", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; margin: 0 0 3px; text-wrap: balance; }
+  .chapter .years { font: 600 11.5px/1 "Seravek", "Avenir Next", system-ui, sans-serif; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 14px; }
+  .chapter.ip { border-left: 3px solid var(--green); padding-left: 20px; }
+  .chapter p { margin: 0 0 15px; }
+
+  .cite { display: inline; border: 0; background: transparent; padding: 0 1px; cursor: pointer;
+    font: 500 12.5px/1 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--blue);
+    border-bottom: 1px dotted var(--blue); white-space: nowrap; }
+  .cite:hover { border-bottom-style: solid; }
+  .cite:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .citewrap { white-space: nowrap; }
+  @media (pointer: coarse) {
+    .cite { font-size: 13.5px; padding: 3px 2px; }
+    .sh { font-size: 11.5px; padding: 3px 0; }
+    .fitem { padding: 7px 0; }
+  }
+
+  /* quote popover */
+  #pop { position: absolute; z-index: 20; display: none; width: min(500px, calc(100vw - 40px));
+    background: var(--pop-bg); border: 1px solid var(--border); border-top: 3px solid var(--blue);
+    border-radius: 8px; padding: 16px 18px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.14); }
+  #pop .q { font-size: 15px; line-height: 1.55; margin: 0 0 10px; }
+  #pop .q::before { content: "\201C"; font-size: 32px; line-height: 0; vertical-align: -11px; color: var(--blue); margin-right: 4px; }
+  #pop .src { font: 500 11.5px/1.5 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted);
+    border-top: 1px solid var(--grid); padding-top: 8px; margin: 0; }
+  #pop .close { position: absolute; top: 6px; right: 10px; border: 0; background: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; }
+
+  /* figures */
+  figure.datafig { margin: 26px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 14px 14px 8px; }
+  figure.datafig figcaption { font: 400 12.5px/1.5 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--ink2); padding: 8px 4px 4px; }
+  figure.datafig figcaption b { font-weight: 700; }
+  .figscroll { overflow-x: auto; }
+
+  /* video placeholders */
+  .vidfig { margin: 28px 0; max-width: 62ch; }
+  .vidposter { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; cursor: pointer;
+    background: linear-gradient(132deg, #14301e 0%, #1f4c33 44%, #14506b 118%); }
+  .vidposter:hover .playbtn { transform: scale(1.07); }
+  .vidposter:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+  .vidposter svg.vcurve { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; }
+  .playbtn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px;
+    border-radius: 50%; background: rgba(255,255,255,.94); display: grid; place-items: center; transition: transform .15s ease;
+    box-shadow: 0 6px 22px rgba(0,0,0,.35); }
+  .playbtn::after { content: ""; margin-left: 5px; border-style: solid; border-width: 11px 0 11px 19px;
+    border-color: transparent transparent transparent #1f4c33; }
+  @media (prefers-reduced-motion: reduce) { .vidposter:hover .playbtn { transform: translate(-50%, -50%); } }
+  .vbadge { position: absolute; top: 12px; right: 12px; font: 700 9px/1 "Seravek", "Avenir Next", system-ui, sans-serif;
+    letter-spacing: .14em; color: #fff; background: rgba(0,0,0,.38); border: 1px solid rgba(255,255,255,.5);
+    border-radius: 999px; padding: 5px 10px; }
+  .vdur { position: absolute; bottom: 12px; right: 12px; font: 600 10.5px/1 "Seravek", "Avenir Next", system-ui, sans-serif;
+    color: #fff; background: rgba(0,0,0,.5); border-radius: 5px; padding: 5px 8px; letter-spacing: .04em; }
+  .vidfig figcaption { padding: 10px 4px 0; }
+  .veyebrow { display: block; font: 700 10px/1 "Seravek", "Avenir Next", system-ui, sans-serif; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--green); margin-bottom: 5px; }
+  .vtitle { display: block; font: 700 15.5px/1.3 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--ink); margin-bottom: 3px; }
+  .vwho { display: block; font: 400 12.5px/1.5 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted); }
+  .foot { margin-top: 34px; font: 400 12px/1.6 "Seravek", "Avenir Next", system-ui, sans-serif; color: var(--muted); max-width: 86ch; }
+  .foot p { margin: 4px 0; }
+  #tip { position: fixed; pointer-events: none; z-index: 30; display: none; background: var(--ink); color: var(--bg);
+    font: 400 12px/1.4 "Seravek", "Avenir Next", system-ui, sans-serif; padding: 6px 9px; border-radius: 6px; max-width: 280px; }
+  .hidden { display: none !important; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div style="position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--border);padding:8px 18px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;">
+  <a href="cases.html" style="color:var(--ink2);text-decoration:none;">&larr; all cases</a>
+  <span style="color:var(--muted);margin-left:12px;letter-spacing:.5px;">CASE &middot; CONSERVATION EASEMENTS</span>
+</div>
+
+<div class="wrap">
+  <div class="eyebrow">Scaling Solutions Library · Reference Case · Demo Prototype</div>
+  <h1>From one Massachusetts charter to twenty million acres</h1>
+  <div class="byline sans">Evidence: 26 sources; every underlined citation opens its verified source quote. Story text: draft v2, pending final citation audit. Stage boundaries follow the case's interpretation worksheet (draft).</div>
+
+  <div class="stats sans">
+    <div class="stat"><b>135 yrs</b><span>and counting, from the first land trust (1891)</span></div>
+    <div class="stat"><b>20.2M</b><span>acres under land trust easement, 2020</span></div>
+    <div class="stat"><b>1,281 land trusts</b><span>the doers at scale today; 465 accredited (2020)</span></div>
+    <div class="stat"><b>US tax code</b><span>the payer at scale, structural since 1980</span></div>
+  </div>
+
+  <div class="master" id="master">
+    <div id="storychart"></div>
+    <div class="finder">
+      <span><span class="lg actor">● Actors</span><span class="lg path">◆ Pathways</span><span class="lg watch">▲ Costs and signals</span></span>
+      <span>Click any marker to jump to that moment in the story.</span>
+      <button id="finderbtn" class="findertoggle" aria-expanded="false" aria-controls="finderpanel">Find a pattern ▾</button>
+    </div>
+    <div id="finderpanel" class="finderpanel hidden"></div>
+  </div>
+
+  <!-- ================= CHAPTERS ================= -->
+
+  <section class="chapter" id="ch-what">
+    <h2>What it is</h2>
+    <span class="years">The instrument, in plain language</span>
+    <p>A conservation easement lets a landowner keep title to land, keep living on it or working it, while permanently giving up specific rights, usually the right to develop or subdivide, to a conservation organization or government agency that holds and enforces the restriction. The restriction runs with the land: it binds every owner who comes after, not just the one who signed it. In the United States the value of a donated easement can be deducted against federal income tax, a benefit made permanent in 1980.</p>
+  </section>
+
+  <section class="chapter" id="ch-or" data-ms="0">
+    <h2>Origins</h2>
+    <span class="years">Boston · 1891</span>
+    <p>In the spring of 1891, Charles Eliot, a young Massachusetts landscape architect, mailed seven hundred letters to supporters asking them to attend a legislative hearing <span class="citewrap">(<button class="cite" data-q="k0">Brewer 2004, p. 31</button>)</span>. He wanted a charter for a new kind of organization, one that would hold land in trust for the public the way an art museum held paintings. His own pitch to the legislature made the case in almost sentimental terms: "There is no need of argument to prove that opportunities for beholding the beauty of Nature are of great importance for the health and happiness of crowded populations" <span class="citewrap">(<button class="cite" data-q="k0">Brewer 2004, p. 31</button>)</span>. The bill passed easily, and the governor signed it into law on May 21, 1891 <span class="citewrap">(<button class="cite" data-q="k0">Brewer 2004, p. 31</button>)</span>. The Trustees of Reservations was the result: the organization most American land trusts still recognize as their earliest progenitor <span class="citewrap">(<button class="cite" data-q="k1">Cheever &amp; McLaughlin 2015, p. 14</button>)</span>, and from that single beginning the field would eventually grow to nearly 1,300 organizations <span class="citewrap">(<button class="cite" data-q="k2">Brewer 2004, p. 38</button>)</span>.</p>
+    <p>Eliot did not invent the conservation easement. He built the land trust, the institutional form that would eventually carry it. The instrument itself, a legal device letting an owner keep title to land while surrendering specific development rights to someone else, took another seven decades to find its name, its law, and its audience. The distance between Eliot's letters and the more than twenty million acres now under easement in the United States <span class="citewrap">(<button class="cite" data-q="k3">Land Trust Alliance 2026, p. 1</button>)</span> is the story of how an obscure, single-purpose real estate device became one of the most widely used conservation tools in the country, and of how long that took.</p>
+  </section>
+
+  <section class="chapter" id="ch-em" data-ms="1,2,3,4">
+    <h2>Emerging</h2>
+    <span class="years">1891 to 1959 · 68 years</span>
+    <p>The instrument itself is older than the organization that would carry it. The first conservation easements in the United States were written in the late 1880s to protect parkways designed by Frederick Law Olmsted near Boston (<button class="cite" data-q="k4">Felmlee 2009, p. 96</button>; <button class="cite" data-q="k5">Fishburn et al. 2009b, p. 5</button>). No record names the drafter, and no history dates the device more precisely than the late 1880s.</p>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh actor" data-tag="doer">● Doer at scale</button><button class="sh actor" data-tag="payer">● Payer at scale</button></div>
+      <p class="tagged" id="t-nps" data-tags="doer payer">The first use of the instrument at real scale came from a single federal agency. During the 1930s and 1940s the National Park Service purchased easements covering almost 1,500 acres in Virginia and North Carolina to protect scenic vistas along the Blue Ridge Parkway, and another 4,500 acres in Mississippi, Alabama, and Tennessee along the Natchez Trace Parkway (<button class="cite" data-q="k6">Cheever &amp; McLaughlin 2015, p. 11</button>; <button class="cite" data-q="k4">Felmlee 2009, p. 96</button>). The doer and the payer were the same federal agency, working alone.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="exit">▲ Doer exits</button></div>
+      <p class="tagged" id="t-npsexit" data-tags="exit">Landowner friction, the difficulty of policing the restrictions, and courts reluctant to grant injunctive relief led the Park Service to discontinue its scenic-easement purchases in the 1950s and turn instead to buying land outright <span class="citewrap">(<button class="cite" data-q="k6">Cheever &amp; McLaughlin 2015, p. 11</button>)</span>. The one actor with the resources to use the tool at scale walked away from it, and stayed away for two decades.</p>
+    </div>
+
+    <p id="p-wisc">Meanwhile the evidence that the tool was cheap kept accumulating. On a 1951-52 Wisconsin parkway project, the state paid a total of $19,151.47 for easements covering 1,271.82 acres, an average of about $15 an acre, against $35.00 to $44.85 an acre for outright purchase of comparable land nearby <span class="citewrap">(<button class="cite" data-q="k7">Whyte 1959, p. 21</button>)</span>. On the Natchez Trace in Alabama the pattern held: about $10 an acre for an easement against about $75 an acre in fee <span class="citewrap">(<button class="cite" data-q="k8">Whyte 1959, pp. 21-22</button>)</span>. Much of this data sat scattered in state highway department files until a writer went looking for it at the end of the decade.</p>
+
+    <p>TNC entered the field quietly, one organization among several. It began as the Ecologists Union in the 1940s and took the name The Nature Conservancy in 1950 <span class="citewrap">(<button class="cite" data-q="k9">Brewer 2004, p. 46</button>)</span>. TNC's first recorded land transaction came in 1956, in New York <span class="citewrap">(<button class="cite" data-q="k10">Fishburn et al. 2009a, p. 2</button>)</span>. By then the Trustees of Reservations was sixty-five years old, and the whole country had held only about fifty land trusts as of 1950 <span class="citewrap">(<button class="cite" data-q="k11">Johnson 2014, p. 5</button>)</span>.</p>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="purgatory">▲ Pilot purgatory</button></div>
+      <p class="tagged" id="t-purgatory" data-tags="purgatory">By 1959, sixty-eight years after Eliot's charter, fewer than two hundred nonprofit land trusts existed in the entire country <span class="citewrap">(<button class="cite" data-q="k12">Felmlee 2009, p. 98</button>)</span>. Land conservation, in Jean Hocker's later words, "was largely a job for government" <span class="citewrap">(<button class="cite" data-q="k12">Felmlee 2009, p. 98</button>)</span>. Sixty-eight years of workable precedent had produced no doer and no payer at scale for the instrument itself. What the stage lacked was not proof that the tool worked. It lacked an adopter and a funder.</p>
+    </div>
+  </section>
+
+  <section class="chapter ip" id="ch-i1" data-ms="5,6,7">
+    <h2>Moving from Emerging to Validating</h2>
+    <span class="years">Inflection point · 1959 to 1965</span>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="motivating">◆ Motivating &amp; mobilizing</button></div>
+      <p class="tagged" id="t-whyte" data-tags="motivating">What changed the field's trajectory was not a single decision. It was three threads landing close enough together to reinforce one another. The first was a book. In 1959 William H. Whyte, an editor at Fortune, wrote a technical bulletin for the Urban Land Institute called Securing Open Space for Urban America: Conservation Easements <span class="citewrap">(<button class="cite" data-q="k4">Felmlee 2009, p. 96</button>)</span>, the source of the term "conservation easement" itself <span class="citewrap">(<button class="cite" data-q="k13">Kay 2016, p. 3</button>)</span>. A companion piece ran in LIFE magazine that August, under the headline "A Plan to Save Vanishing U.S. Countryside" <span class="citewrap">(<button class="cite" data-q="k14">Whyte 1959, p. 3</button>)</span>. Reviewing the bulletin decades later, Jean Hocker called it "probably the first time an entire publication had been devoted to explaining and promoting this then-obscure conservation tool" <span class="citewrap">(<button class="cite" data-q="k4">Felmlee 2009, p. 96</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="policy">◆ Policy change</button></div>
+      <p class="tagged" id="t-farr" data-tags="policy">The second was a statute, moving on almost exactly the same calendar. California State Senator Fred Farr of Monterey introduced a bill on May 4, 1959 <span class="citewrap">(<button class="cite" data-q="k15">Whyte 1959, p. 34</button>)</span>; after it was weakened in committee, he reintroduced the original version, and the governor signed it into law on July 7 <span class="citewrap">(<button class="cite" data-q="k16">Whyte 1959, p. 35</button>)</span>, the first statute anywhere to declare open-space preservation itself a public purpose. The bill had a live case behind it: a citizens' campaign in Monterey County had, by August 10, 1959, already collected pledges of easement gifts covering roughly 4,000 acres <span class="citewrap">(<button class="cite" data-q="k17">Whyte 1959, p. 24</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="policy">◆ Policy change</button><button class="sh actor" data-tag="newpayer">● New payer at scale</button></div>
+      <p class="tagged" id="t-irs" data-tags="policy newpayer">The third thread took a little longer, and it came from an institution neither Whyte nor Farr controlled. In 1964 the IRS published a Revenue Ruling authorizing a federal charitable income tax deduction for donating a conservation easement to the government <span class="citewrap">(<button class="cite" data-q="k18">Cheever &amp; McLaughlin 2015, p. 12</button>)</span>; a year later it issued a news release advertising the deduction's availability <span class="citewrap">(<button class="cite" data-q="k18">Cheever &amp; McLaughlin 2015, p. 12</button>)</span>, and Congress passed the Federal Highway Beautification Act, which pushed states toward scenic-easement legislation of their own by threatening to withhold highway funds <span class="citewrap">(<button class="cite" data-q="k18">Cheever &amp; McLaughlin 2015, p. 12</button>)</span>. None of the three threads was planned as a joint campaign. The field's first inflection was ridden, not run.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="ch-va" data-ms="8">
+    <h2>Validating</h2>
+    <span class="years">1965 to 1976 · about a decade</span>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="replication">◆ Replication</button></div>
+      <p class="tagged" id="t-spread" data-tags="replication">Forty states had enacted some form of conservation easement enabling statute by 1979 <span class="citewrap">(<button class="cite" data-q="k18">Cheever &amp; McLaughlin 2015, p. 12</button>)</span>. The number of American land trusts, roughly 132 in 1964-65 <span class="citewrap">(<button class="cite" data-q="k19">Brewer 2004, p. 53</button>)</span>, grew to about 308 by 1975 <span class="citewrap">(<button class="cite" data-q="k19">Brewer 2004, p. 53</button>)</span>, a run the field's own historian credited to "the blossoming of the public environmental movement" and clocked at roughly 9 percent annual growth <span class="citewrap">(<button class="cite" data-q="k20">Brewer 2004, p. 54</button>)</span>.</p>
+    </div>
+
+    <figure class="datafig">
+      <div class="figscroll"><div id="fig-trusts"></div></div>
+      <figcaption class="sans"><b>Figure 2.</b> Active land trusts in the United States, 1940 to 2020, Land Trust Alliance census lineage. The hollow point is Alliance membership in 2026, a narrower measure. Hover any point for its source.</figcaption>
+    </figure>
+
+    <p>In this era TNC was a model, not an engine. "The Nature Conservancy (TNC) served mostly as a model," the field's fullest institutional history records. "Only occasionally did it actively encourage the formation of local land trusts" <span class="citewrap">(<button class="cite" data-q="k21">Brewer 2004, p. 48</button>)</span>. The active spreading came instead from the Trust for Public Land, whose circuit-riders, under founder Huey Johnson and his successor Joel Kuperberg, visited groups wanting to organize, especially in California and the West <span class="citewrap">(<button class="cite" data-q="k21">Brewer 2004, p. 48</button>)</span>. The era's second major case-making document, Russell Brenneman's 1967 treatise Private Approaches to the Preservation of Open Land, taught land-savers the legal landscape for easements, transfers, and covenants <span class="citewrap">(<button class="cite" data-q="k22">Brewer 2004, p. 47</button>)</span>; its author, a Connecticut lawyer, also consulted for TNC on land and tax issues <span class="citewrap">(<button class="cite" data-q="k22">Brewer 2004, p. 47</button>)</span>.</p>
+
+    <p>What the field still lacked by 1976 was a permanent federal deduction and settled law. Common-law doubts about easements held "in gross" and about the enforceability of perpetual restrictions left nonprofits seeking donated easements, and state governments seeking to purchase them, "essentially stymied" absent a statute that did not yet exist <span class="citewrap">(<button class="cite" data-q="k23">Burnett 2013, p. 4</button>)</span>. The field by then was real and growing, spreading state by state and trust by trust. It was not yet a system. Proof had accumulated faster than the legal machinery that could carry it.</p>
+  </section>
+
+  <section class="chapter ip" id="ch-i2" data-ms="9,10,11,12,13">
+    <h2>Moving from Validating to Scaling</h2>
+    <span class="years">Inflection point · 1976 to 1982</span>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="policy">◆ Policy change</button></div>
+      <p class="tagged" id="t-taxcode" data-tags="policy">The cluster that would carry the field to scale opened, again, in the tax code. An "obscure" 1976 provision, the Historic Structures Tax Act, first codified the deductibility of conservation and historic-preservation easement donations <span class="citewrap">(<button class="cite" data-q="k24">Kay 2016, p. 5</button>)</span>; the same Congress, in the Tax Reform Act of 1976 and the Tax Reduction and Simplification Act of 1977, separately extended tax benefits to easement gifts more broadly <span class="citewrap">(<button class="cite" data-q="k25">Looney 2017, p. 5</button>)</span>. Treasury reversed itself in 1977, restricting the deduction to perpetual easements only, "apparently influenced by the views of land conservation organizations, particularly The Nature Conservancy," which argued that term easements just let development pressure build for thirty years until it became irresistible <span class="citewrap">(<button class="cite" data-q="k26">McLaughlin 2010, p. 5</button>)</span>. The same year, TNC's own uptake of the instrument became widespread <span class="citewrap">(<button class="cite" data-q="k5">Fishburn et al. 2009b, p. 5</button>)</span>: the organization that had entered the field quietly in 1956 was now adopting the instrument in earnest.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="policy">◆ Policy change</button></div>
+      <p class="tagged" id="t-170h" data-tags="policy">The campaign became visible by name in 1980. Treasury's Deputy Assistant Secretary for Tax Policy, Daniel Halperin, testified that "it is not clear to us whether procedures exist to insure that a donated partial interest in property, such as a conservation easement contributed to a private charitable organization, will continue to be used for conservation purposes and for the benefit of the general public" <span class="citewrap">(<button class="cite" data-q="k27">McLaughlin 2010, p. 6</button>)</span>. Land trusts answered him directly. Samuel W. Morris, president of the French and Pickering Creeks Conservation Trust, submitted written testimony on July 1, 1980, on behalf of nineteen land trusts <span class="citewrap">(<button class="cite" data-q="k28">McLaughlin 2010, p. 13</button>)</span>. Thomas Coughlin of the National Trust for Historic Preservation and William Sellers of the Brandywine Conservancy testified at the same hearings <span class="citewrap">(<button class="cite" data-q="k28">McLaughlin 2010, p. 13</button>)</span>. Stephen J. Small, who joined the IRS the following year, then drafted the original Treasury regulations implementing the law <span class="citewrap">(<button class="cite" data-q="k29">McLaughlin 2010, p. 15</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="standardization">◆ Standardization</button></div>
+      <p class="tagged" id="t-ucea" data-tags="standardization">At almost the same moment, a second campaign was fixing the instrument's legal foundation at the state level. The Uniform Law Commission appointed a drafting committee for a model Uniform Conservation Easement Act in 1978; it completed the work in 1981, after at least six day-and-a-half meetings and debate at two separate annual Commission meetings <span class="citewrap">(<button class="cite" data-q="k30">Burnett 2013, p. 3</button>)</span>. Its reporters were Russell Brenneman, a working Connecticut land-trust attorney, and John Costonis, a land-use scholar <span class="citewrap">(<button class="cite" data-q="k30">Burnett 2013, p. 3</button>)</span>. K. King Burnett, who later wrote the fullest first-person account of the drafting process, was added to the committee specifically for his experience with Maryland's own easement statute and his seat on the board of the Maryland Environmental Trust <span class="citewrap">(<button class="cite" data-q="k23">Burnett 2013, p. 4</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="networking">◆ Strategic networking</button></div>
+      <p class="tagged" id="t-browne" data-tags="networking">The third piece grew out of one lawyer's curiosity. Kingsbury Browne, a Boston tax attorney who had been advising land trusts informally since the early 1970s, spent July through December of 1980 visiting land-saving organizations around the country, starting with the Brandywine Conservancy <span class="citewrap">(<button class="cite" data-q="k31">Brewer 2004, p. 49</button>)</span>. What he found was that these groups "were tending to reinvent the wheel" <span class="citewrap">(<button class="cite" data-q="k31">Brewer 2004, p. 49</button>)</span>, each solving the same problems in isolation. His tour led directly to the National Consultation on Local Land Conservation, held in Cambridge in October 1981 and attended by representatives of about forty organizations, roughly two dozen of them land trusts <span class="citewrap">(<button class="cite" data-q="k31">Brewer 2004, p. 49</button>)</span>. Out of it came the Land Trust Exchange, incorporated in Boston in February 1982, with Allan Spader, who had helped organize the Consultation, as its first executive director <span class="citewrap">(<button class="cite" data-q="k32">Brewer 2004, p. 190</button>)</span>. Browne's own link to the founding generation ran through his friend Charles "Hank" Foster, a former Nature Conservancy president <span class="citewrap">(<button class="cite" data-q="k31">Brewer 2004, p. 49</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="crisis">◆ Crisis opening</button></div>
+      <p class="tagged" id="t-watt" data-tags="crisis">None of these three efforts, the tax fix, the model statute, and the founding convocation, was run by the same people or reported to the same body, but they landed within eighteen months of one another. The field also rode a shock it did not create. James Watt, confirmed as Interior Secretary in January 1981, moved to gut the Land and Water Conservation Fund, the federal government's main vehicle for buying conservation land outright; the administration's own budget recommendation cut the fund's appropriation from $750 million in the last Carter-era year to a proposed $45 million <span class="citewrap">(<button class="cite" data-q="k33">Brewer 2004, p. 52</button>)</span>. Land trusts that had counted on reselling purchased land to government agencies suddenly had no buyer. "One of the effects of the resulting 'creative thinking' was increased use of conservation easements," the field's historian wrote <span class="citewrap">(<button class="cite" data-q="k33">Brewer 2004, p. 52</button>)</span>. Jean Hocker, by then a Wyoming land trust director, put it more bluntly at the time: "Reagan and Watt have given impetus to our efforts" <span class="citewrap">(<button class="cite" data-q="k34">Kay 2016, p. 12</button>)</span>. Three of this inflection's four parts, the permanent deduction, the model law, and the national exchange, were built on purpose. The fourth arrived from outside, and the field put it to work.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="ch-sc" data-ms="14,15,16,17,18,19,20,21">
+    <h2>Scaling</h2>
+    <span class="years">1982 to today · 44 years and running</span>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="replication">◆ Replication</button></div>
+      <p class="tagged" id="t-boom" data-tags="replication">The growth that followed shows up clearly in the numbers. Land trust formation, which had run about 9 percent a year through the mid-1970s, peaked at roughly 16 percent a year from 1985 to 1988 <span class="citewrap">(<button class="cite" data-q="k20">Brewer 2004, p. 54</button>)</span>: the visible knee of a curve the 1976-82 legal cluster had already set moving a few years earlier, not a new cause in its own right. The acreage figures tell the same story at a longer horizon. In 1980, only 128,000 acres nationwide were under conservation easement <span class="citewrap">(<button class="cite" data-q="k35">Kay 2016, p. 4</button>)</span>; by 2020 the figure, for land trusts alone, had reached 20,236,888 acres <span class="citewrap">(<button class="cite" data-q="k3">Land Trust Alliance 2026, p. 1</button>)</span>.</p>
+    </div>
+
+    <figure class="datafig">
+      <div class="figscroll"><div id="fig-acres"></div></div>
+      <figcaption class="sans"><b>Figure 1.</b> Acres under land trust easement, 1980 to 2020, from Land Trust Alliance census data. The dashed line adds government and national holders, counted by the National Conservation Easement Database from 2014. Hover any point for its source.</figcaption>
+    </figure>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh actor" data-tag="payer">● Payer at scale</button></div>
+      <p class="tagged" id="t-payer" data-tags="payer">The mechanism carrying that curve was the deduction. $2.18 billion in easement-donation deductions were claimed in 2007 alone <span class="citewrap">(<button class="cite" data-q="k36">Kay 2016, p. 22</button>)</span>, a figure paid not by any foundation or major donor but by the U.S. Treasury, in forgone revenue, one tax return at a time. The shift from philanthropy to tax expenditure as the field's payer at scale had begun in 1964, with the IRS's first ruling; by 1980 it was structural.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh actor" data-tag="doer">● Doer at scale</button><button class="sh watch" data-tag="neardeath">▲ Near-death</button></div>
+      <p class="tagged" id="t-doers" data-tags="doer neardeath">The doers were never one organization. They were hundreds of independent local land trusts plus a handful of national ones, TNC among them. The new umbrella body nearly died anyway: about eighteen months after its 1982 founding, the Land Trust Exchange suffered what its own historian calls a "financial meltdown," closing its Boston office and relocating, to save money, to executive director Benjamin Emory's house in Bar Harbor, Maine <span class="citewrap">(<button class="cite" data-q="k37">Brewer 2004, p. 191</button>)</span>. It survived, and built the field's first shared standards: a committee of land trust representatives drafted the Land Trust Alliance's Standards and Practices in 1988, published them the next year, and expanded them into a full guidebook in 1993 <span class="citewrap">(<button class="cite" data-q="k38">Brewer 2004, p. 193</button>)</span>.</p>
+    </div>
+
+    <p>TNC's own trajectory bent the same way. Across its full 1954-2003 history, easements accounted for 37 percent of the cumulative area TNC protected and 15 percent of its cumulative expenditure <span class="citewrap">(<button class="cite" data-q="k39">Fishburn et al. 2009a, p. 3</button>)</span>; but by 2003 alone, the annual share going to easements had reached 70 percent of area and nearly half of dollar investment <span class="citewrap">(<button class="cite" data-q="k40">Fishburn et al. 2009b, p. 3</button>)</span>, a share the same researchers described as "growing exponentially" with no evidence of leveling off <span class="citewrap">(<button class="cite" data-q="k5">Fishburn et al. 2009b, p. 5</button>)</span>. The clearest sign of that growing capacity was Maine, protected across two rounds of TNC easement transactions in 2001 and 2003 <span class="citewrap">(<button class="cite" data-q="k41">Fishburn et al. 2009a, p. 6</button>)</span>. By December 31, 2003, TNC held 1,608 easement parcels <span class="citewrap">(<button class="cite" data-q="k42">Senate Finance Committee 2005, p. 1</button>)</span>; by the following fiscal year-end, its balance sheet carried those easements at $795,812,000 <span class="citewrap">(<button class="cite" data-q="k42">Senate Finance Committee 2005, p. 1</button>)</span>.</p>
+
+
+    <figure class="vidfig">
+      <div class="vidposter" role="button" tabindex="0" aria-label="Video placeholder, not yet recorded">
+        <svg class="vcurve" viewBox="0 0 320 180" preserveAspectRatio="none" aria-hidden="true"><path d="M 10 150 C 120 148, 200 140, 250 90 S 300 30, 312 22" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><path d="M 312 22 l -12 3 l 5 -7 z" fill="#ffffff"/></svg>
+        <span class="playbtn"></span>
+        <span class="vbadge">PLACEHOLDER</span>
+        <span class="vdur">≈5 MIN</span>
+      </div>
+      <figcaption>
+        <span class="veyebrow">Voices from the field · Clip 1 · to be recorded</span>
+        <span class="vtitle">The pivot from buying land to buying rights</span>
+        <span class="vwho">Interview slot: a veteran of TNC land protection on how the easement went from side tool to the organization's most-used instrument, and who pushed for it inside.</span>
+      </figcaption>
+    </figure>
+    <p>TNC also built its own machinery for keeping the promises that scale required. It began reselling donated non-conservation land for cash in 1981 through its Trade Lands program, raising over $180 million by 2003 <span class="citewrap">(<button class="cite" data-q="k43">Senate Finance Committee 2005, p. 36</button>)</span>. Since 1989, its written policy has set aside funds for the perpetual stewardship of any interest it acquires, defaulting to about 20 percent of a property's value when a more precise estimate is impractical; by the mid-2000s TNC maintained more than 400 such endowments totaling over $700 million in the aggregate <span class="citewrap">(<button class="cite" data-q="k44">Senate Finance Committee 2005, p. 7</button>)</span>.</p>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="cost">▲ Cost of scale</button></div>
+      <p class="tagged" id="t-cost" data-tags="cost">Scaling brought costs of its own. In May 2003 the Washington Post began a series of articles questioning the practices of The Nature Conservancy and the broader land trust field <span class="citewrap">(<button class="cite" data-q="k45">Felmlee 2009, p. 16</button>)</span>; TNC responded by suspending certain of its own activities pending its next scheduled board meeting, held June 13, 2003 <span class="citewrap">(<button class="cite" data-q="k46">Senate Finance Committee 2005, p. 41</button>)</span>. A subsequent Senate Finance Committee staff investigation found that TNC had failed to enforce a conservation easement violation at Roanoke Island Marshes, North Carolina <span class="citewrap">(<button class="cite" data-q="k47">Senate Finance Committee 2005, p. 4</button>)</span>, and that of seventy-five easement modifications the organization completed between mid-1994 and mid-2003, at least thirty-four appeared to benefit the landowner who had requested them <span class="citewrap">(<button class="cite" data-q="k48">Senate Finance Committee 2005, p. 6</button>)</span>. Across fiscal years 1993 through 2002, the Committee's own table put TNC's decade of fundraising at $2,529.1 million in cash and $1,055.7 million in in-kind contributions <span class="citewrap">(<button class="cite" data-q="k49">Senate Finance Committee 2005, p. 35</button>)</span>.</p>
+    </div>
+
+
+    <figure class="vidfig">
+      <div class="vidposter" role="button" tabindex="0" aria-label="Video placeholder, not yet recorded">
+        <svg class="vcurve" viewBox="0 0 320 180" preserveAspectRatio="none" aria-hidden="true"><path d="M 10 150 C 120 148, 200 140, 250 90 S 300 30, 312 22" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><path d="M 312 22 l -12 3 l 5 -7 z" fill="#ffffff"/></svg>
+        <span class="playbtn"></span>
+        <span class="vbadge">PLACEHOLDER</span>
+        <span class="vdur">≈4 MIN</span>
+      </div>
+      <figcaption>
+        <span class="veyebrow">Voices from the field · Clip 2 · to be recorded</span>
+        <span class="vtitle">Inside the 2003 crisis</span>
+        <span class="vwho">Interview slot: what the Washington Post series and the Senate investigation actually changed inside the field, and what they cost.</span>
+      </figcaption>
+    </figure>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="quality">▲ Quality debt</button></div>
+      <p class="tagged" id="t-quality" data-tags="quality">A second problem had built up more quietly: almost no one was checking whether the easements delivered their conservation goals. TNC's own scientists, studying 119 of TNC's own easements established between 1984 and 2004 across eight states, found that 92 percent had been monitored for legal compliance in the past three years, but only 19.8 percent of their biological conservation targets had ever been monitored quantitatively, and that the organization "has no explicit guidelines on where, when," or how to monitor <span class="citewrap">(<button class="cite" data-q="k50">Kiesecker et al. 2007, pp. 2, 6</button>)</span>. A companion study of the same easements found some residential or commercial use, new structures, or subdivision permitted on 85 percent of them <span class="citewrap">(<button class="cite" data-q="k51">Rissman et al. 2007, p. 1</button>)</span>. A related abuse channel would open later: from 2012, so-called syndicated easements, investor partnerships that bought land and obtained inflated appraisals purely to harvest tax deductions, became the field's newest wave of public scrutiny <span class="citewrap">(<button class="cite" data-q="k52">Parker &amp; Thurman 2019, p. 7</button>)</span>.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh path" data-tag="fieldstd">◆ Field standards</button></div>
+      <p class="tagged" id="t-accred" data-tags="fieldstd">The repairs began within months of the Post series. TNC's Board of Governors formed a Governance Advisory Panel in September 2003 <span class="citewrap">(<button class="cite" data-q="k53">Senate Finance Committee 2005, p. 42</button>)</span>, which recommended a permanent Compliance Director <span class="citewrap">(<button class="cite" data-q="k54">Senate Finance Committee 2005, p. 45</button>)</span> and a rule against signing IRS Form 8283 unless a donor's appraiser was state-certified <span class="citewrap">(<button class="cite" data-q="k55">Senate Finance Committee 2005, p. 43</button>)</span>. On April 20, 2005, Land Trust Alliance president Rand Wentworth announced a plan for land trust accreditation, framing it as a direct answer to the crisis: "We cannot allow a few bad apples to stop thousands of land owners, working farmers and ranchers, and local communities from protecting America's natural areas and landscapes" <span class="citewrap">(<button class="cite" data-q="k56">Felmlee 2009, p. 25</button>)</span>. Through 2005 and 2006 the Alliance built the Land Trust Accreditation Commission as a separate nonprofit <span class="citewrap">(<button class="cite" data-q="k57">Felmlee 2009, p. 17</button>)</span>; the first thirty-nine of sixty-seven applicant land trusts were accredited at a September 19, 2008 ceremony <span class="citewrap">(<button class="cite" data-q="k57">Felmlee 2009, p. 17</button>)</span>. By 2020, accredited land trusts held 81 percent of all the acreage that land trusts owned or held under easement nationwide <span class="citewrap">(<button class="cite" data-q="k3">Land Trust Alliance 2026, p. 1</button>)</span>.</p>
+    </div>
+
+
+    <figure class="vidfig">
+      <div class="vidposter" role="button" tabindex="0" aria-label="Video placeholder, not yet recorded">
+        <svg class="vcurve" viewBox="0 0 320 180" preserveAspectRatio="none" aria-hidden="true"><path d="M 10 150 C 120 148, 200 140, 250 90 S 300 30, 312 22" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><path d="M 312 22 l -12 3 l 5 -7 z" fill="#ffffff"/></svg>
+        <span class="playbtn"></span>
+        <span class="vbadge">PLACEHOLDER</span>
+        <span class="vdur">≈4 MIN</span>
+      </div>
+      <figcaption>
+        <span class="veyebrow">Voices from the field · Clip 3 · to be recorded</span>
+        <span class="vtitle">Building the quality gate</span>
+        <span class="vwho">Interview slot: a builder of the accreditation system on designing quality control for a thousand independent organizations, twenty-five years into scale.</span>
+      </figcaption>
+    </figure>
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="consolidation">▲ Consolidation</button></div>
+      <p class="tagged" id="t-consol" data-tags="consolidation">The field that emerged from that reckoning is smaller in organizational count than its recent peak, though not in acreage. Roughly 1,700 land trusts existed as of the 2010 census <span class="citewrap">(<button class="cite" data-q="k58">Johnson 2014, p. 2</button>)</span>; by 2020 that had fallen to 1,281 active land trusts, of which 948 belonged to the Alliance and 465 were accredited <span class="citewrap">(<button class="cite" data-q="k3">Land Trust Alliance 2026, p. 1</button>)</span>. Most of that decline reflects genuine consolidation, smaller organizations merging into larger, more professionally run ones, rather than the field shrinking. As of February 2026, the National Conservation Easement Database recorded roughly 38 million acres protected under 221,256 easements across all holders, government and private combined <span class="citewrap">(<button class="cite" data-q="k59">Richardson et al. 2026, p. 39</button>)</span>. In the same month, the Alliance's own 948 member land trusts reported protecting about 61.07 million acres of land they owned outright or held under easement together <span class="citewrap">(<button class="cite" data-q="k59">Richardson et al. 2026, p. 39</button>)</span>, a total that includes land owned outright, not easements alone.</p>
+    </div>
+
+    <div class="sidewrap">
+      <div class="sideheads sans"><button class="sh watch" data-tag="openq">▲ Open question</button></div>
+      <p class="tagged" id="t-open" data-tags="openq">The perpetuity that the deduction demanded, and that let donors commit in the first place, is now the feature scholars and practitioners question most. Mahoney has called it arrogant to permanently conserve land, given how little any generation can know about the next's preferences; Owley has argued that perpetual easements lock in one landowner's preferences and resist the adaptive management that changing conditions require <span class="citewrap">(<button class="cite" data-q="k60">Cheever &amp; McLaughlin 2015, p. 78</button>)</span>. Others have proposed extending tax benefits to fixed-term easements that could be renegotiated as circumstances shift, with climate change the recurring reason cited for wanting that flexibility <span class="citewrap">(<button class="cite" data-q="k61">Richardson et al. 2026, p. 51</button>)</span>. Whether a tool built to last forever can still do its job in a changing climate is a question the field has not settled.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <p><b>Method.</b> Every figure and dated claim traces to a 26-source evidence corpus in which each quote was verified verbatim against the source page. Every underlined citation opens the verified quote recorded for that source and page. Pattern labels mark the framework's recurring moves, doers and payers at scale, scaling pathways, and the costs of scale, beside the paragraph where each occurs; the same moments appear as colored markers on the chart (● actors, ◆ pathways, ▲ costs and signals). The master curve is schematic: stage widths are fixed by the framework so cases of different lengths read as the same shape, and durations are printed in the labels. Stage boundaries follow the case's Layer 2 worksheet, currently in draft. Video clips are unrecorded placeholders: no interviews have been conducted yet.</p>
+    <p><b>Data notes.</b> The acreage series is the Land Trust Alliance census lineage, one scope, with the LTA's latest published revisions governing. The 2026 membership count (948) is a narrower measure than active land trusts and is never placed on the same curve. All-methods totals (61 million acres in 2020) are excluded from the easement curve.</p>
+  </div>
+</div>
+
+<div id="pop" role="dialog" aria-label="Source quote"><button class="close" aria-label="Close">×</button><div class="qwrap"></div><p class="src"></p></div>
+<div id="tip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- verified quotes (generated from the citation map + findings; injected at build) ----------
+  const QUOTES = {
+ "k0": {
+  "t": [
+   "An example of how Eliot got things done is the seven hundred letters he sent to supporters encouraging them to attend the legislative hearing.",
+   "There is no need of argument to prove that opportunities for beholding the beauty of Nature are of great importance for the health and happiness of crowded populations."
+  ],
+  "s": "Brewer 2004, p. 31. Verified verbatim (finding s23/A3, s23/A4)."
+ },
+ "k1": {
+  "t": [
+   "Originally, land trusts were charitable organizations that worked to preserve scenic landscapes by purchasing land in fee simple.",
+   "Most American land trusts recognize as their earliest progenitor the Trustees of Reservations, a Massachusetts nonprofit organization established in 1891 by the state legislature at the behest of landscape architect Charles Norton Eliot."
+  ],
+  "s": "Cheever & McLaughlin 2015, p. 14. Verified verbatim (finding s19/A3)."
+ },
+ "k2": {
+  "t": [
+   "From one land trust in 1891, there has grown to be close to 1,300 today."
+  ],
+  "s": "Brewer 2004, p. 38. Verified verbatim (finding s23/A2)."
+ },
+ "k3": {
+  "t": [
+   "Under easement\n12,837,451\n16,572,307\n20,236,888\n+58%",
+   "ACTIVE LAND TRUSTS\n1,281\nA land trust is a nonprofit that conserves land by acquiring and stewarding land or conservation easements.\n\nALLIANCE MEMBER LAND TRUSTS\n948\nLand Trust Alliance members commit to adopting Land Trust Standards and Practices as their guiding principles.\n\nACCREDITED LAND TRUSTS\n465\nAccredited land trusts undergo a thorough review of their practices in governance, finance, transactions and stewardship."
+  ],
+  "s": "Land Trust Alliance 2026, p. 1. Verified verbatim (finding s26/T2)."
+ },
+ "k4": {
+  "t": [
+   "In fact, the first conservation easements in the United States were written in the late 1880s to protect parkways designed by Frederick Law Olmstead in the Boston area.",
+   "In the 1930s, the National Park Service made extensive use of easements to protect land along the Blue Ridge and Natchez Trace Parkways."
+  ],
+  "s": "Felmlee 2009, p. 96. Verified verbatim (finding s02/T3, s02/A2)."
+ },
+ "k5": {
+  "t": [
+   "Easements in the US were first used as a method of protection in the late 1880s [15,36].",
+   "used them to protect property since the late 1950s [37], with their popularity only really increasing in the 1970s [26]."
+  ],
+  "s": "Fishburn et al. 2009b, p. 5. Verified verbatim (finding s04/T3)."
+ },
+ "k6": {
+  "t": [
+   "The term conservation easement did not emerge until the late 1950s when journalist William Whyte advocated using private land use controls to accomplish landscape preservation.",
+   "During the 1930s and 1940s, the National Park Service purchased easements encumbering almost 1,500 acres in Virginia and North Carolina to protect scenic vistas along the Blue Ridge Parkway, and easements encumbering another 4,500 acres in Mississippi, Alabama, and Tennessee to protect scenic vistas along the Natchez Trace Parkway."
+  ],
+  "s": "Cheever & McLaughlin 2015, p. 11. Verified verbatim (finding s19/T3)."
+ },
+ "k7": {
+  "t": [
+   "Average easement cost per parcel $144.00",
+   "Totals        1,271.82      $19,151.47      133"
+  ],
+  "s": "Whyte 1959, p. 21. Verified verbatim (finding s16/A5)."
+ },
+ "k8": {
+  "t": [
+   "Average easement cost per parcel $144.00",
+   "Totals        1,271.82      $19,151.47      133"
+  ],
+  "s": "Whyte 1959, pp. 21-22. Verified verbatim (finding s16/A5)."
+ },
+ "k9": {
+  "t": [
+   "It was founded in 1946 as the Ecologists Union and adopted The Nature Conservancy name in 1950."
+  ],
+  "s": "Brewer 2004, p. 46. Verified verbatim (finding s23/A2)."
+ },
+ "k10": {
+  "t": [
+   "first deal for New York was in 1956",
+   "For example, the"
+  ],
+  "s": "Fishburn et al. 2009a, p. 2. Verified verbatim (finding s03/A2)."
+ },
+ "k11": {
+  "t": [
+   "Brewer estimates that there were fewer than 20 land trusts active at the beginning of World War II, and perhaps around 50 in existence by 1950"
+  ],
+  "s": "Johnson 2014, p. 5. Verified verbatim (finding s20/A6)."
+ },
+ "k12": {
+  "t": [
+   "Although then the number of nonprofit land trusts were fewer than 200, today the number exceeds 1,200.",
+   "Although then land conservation was largely a job for government, today the job is shared by public and private efforts, with nonprofit groups often providing the innovation."
+  ],
+  "s": "Felmlee 2009, p. 98. Verified verbatim (finding s02/A6, s02/R5)."
+ },
+ "k13": {
+  "t": [
+   "The first private transaction for land protection in the US occurred in Boston, MA, in the 1630s, with the purchase of what is now the Boston Common (Levitt, 2005).",
+   "Easements have a shorter history but have been used for half a century as a means of procuring rights of way for public utilities and government agencies."
+  ],
+  "s": "Kay 2016, p. 3. Verified verbatim (finding s06/T3)."
+ },
+ "k14": {
+  "t": [
+   "From \"A Plan to Save Vanishing U. S. Countryside\" by William H. Whyte, Jr., LIFE, issue of August 17, 1959"
+  ],
+  "s": "Whyte 1959, p. 3. Verified verbatim (finding s16/G1)."
+ },
+ "k15": {
+  "t": [
+   "On May 4th, Senator Fred Farr of Monterey"
+  ],
+  "s": "Whyte 1959, p. 34. Verified verbatim (finding s16/B3)."
+ },
+ "k16": {
+  "t": [
+   "On June 17th the Assembly, by unanimous",
+   "7th, the Governor signed the bill."
+  ],
+  "s": "Whyte 1959, p. 35. Verified verbatim (finding s16/B2)."
+ },
+ "k17": {
+  "t": [
+   "in June (1959) ; by August 10th gifts of 4,000"
+  ],
+  "s": "Whyte 1959, p. 24. Verified verbatim (finding s16/G1)."
+ },
+ "k18": {
+  "t": [
+   "In 1964, the IRS published a Revenue Ruling authorizing a federal charitable income tax deduction for the donation of a conservation easement to the United States for the purpose of protecting scenic land adjacent to a federal highway.",
+   "That Act, which provided that 3% of the funds appropriated to a state during any fiscal year for the construction of highways had to be used for landscaping and scenic enhancement or such funds would lapse, inspired states to enact legislation facilitating the use of scenic highway easements."
+  ],
+  "s": "Cheever & McLaughlin 2015, p. 12. Verified verbatim (finding s19/B2)."
+ },
+ "k19": {
+  "t": [
+   "Ten years or so earlier, in 1964 to 1965, the number had been in the vicinity of 132.",
+   "Six years earlier, in 1975, only about 308 (or somewhat fewer) were in existence."
+  ],
+  "s": "Brewer 2004, p. 53. Verified verbatim (finding s23/A6, s23/C6)."
+ },
+ "k20": {
+  "t": [
+   "From 1965 to 1975, growth rate was around 9 percent per year.",
+   "This corresponds with the blossoming of the public environmental movement."
+  ],
+  "s": "Brewer 2004, p. 54. Verified verbatim (finding s23/B1)."
+ },
+ "k21": {
+  "t": [
+   "Huey Johnson, TPL founder and first executive director and also Joel Kuperberg, its second executive director, were strong advocates of local land trusts.",
+   "The Nature Conservancy (TNC) served mostly as a model. Only occasionally did it actively encourage the formation of local land trusts."
+  ],
+  "s": "Brewer 2004, p. 48. Verified verbatim (finding s23/B3)."
+ },
+ "k22": {
+  "t": [
+   "Stemming from Whyte's book was not just acceptance by the conservation community but also eventual widespread legislation giving an explicit legal basis for conservation easements.",
+   "He concentrated on easements because of the then-unrealized potential of this approach to saving open space."
+  ],
+  "s": "Brewer 2004, p. 47. Verified verbatim (finding s23/G1)."
+ },
+ "k23": {
+  "t": [
+   "Traditionally, flowing from English common law, easement restrictions on property use could be created in perpetuity only if they benefited neighboring property.",
+   "In most American jurisdictions, there were no cases indicating that the courts would not follow this English common law rule."
+  ],
+  "s": "Burnett 2013, p. 4. Verified verbatim (finding s22/B8)."
+ },
+ "k24": {
+  "t": [
+   "Prior to the late 1970s, nearly all land and historic resources that were protected by both private nonprofit groups and the state were purchased outright.",
+   "A sea change was set in motion, however, when in 1980 the US tax code was revised to allow for the charitable donation of perpetual easements. This amendment was made to a relatively obscure tax provision from 1976, the Historic Structures Tax Act (Small, 2000), which codified the deductibility of conservation and historic preservation easement donations. With the Tax Treatment Extension Act of 1980, Congress made the conservation easement deduction provision permanent."
+  ],
+  "s": "Kay 2016, p. 5. Verified verbatim (finding s06/B1)."
+ },
+ "k25": {
+  "t": [
+   "In order to be deductible, a donation of a conservation easement must be made to a qualified charitable organization—generally either a public charity or a State or local government entity",
+   "Tax benefits for gifts of conservation easements were first enacted in the Tax Reform Act of 1976 and the Tax Reduction and Simplification Act of 1977, and extended permanently in 1980 with the Tax Treatment Extension Act, which created IRC section 170(h)."
+  ],
+  "s": "Looney 2017, p. 5. Verified verbatim (finding s18/T1)."
+ },
+ "k26": {
+  "t": [
+   "The Treasury was apparently influenced by the views of land conservation organizations, particularly The Nature Conservancy, which believed that term easements were undesirable because they merely allowed development pressures to build up over thirty years, at which time the pressure to develop would be irresistible."
+  ],
+  "s": "McLaughlin 2010, p. 5. Verified verbatim (finding s17/B3)."
+ },
+ "k27": {
+  "t": [
+   "then Deputy Assistant Secretary for Tax Policy, Daniel Halperin, noted:\n              [I]t is not clear to us whether procedures exist to\n         insure that a donated partial interest in property, such as\n         a conservation easement contributed to a private\n         charitable organization, will continue to be used for\n         conservation purposes and for the benefit of the general\n         public."
+  ],
+  "s": "McLaughlin 2010, p. 6. Verified verbatim (finding s17/G2)."
+ },
+ "k28": {
+  "t": [
+   "(written statement of Samuel W. Morris, President, French and Pickering Creeks Conservation Trust, Inc., Pottstown, Pa., July 1, 1980, submitted on behalf of nineteen land trusts)",
+   "Code itself. We would hope that some Regulation for this purpose could be developed by those most interested, i.e., The Revenue Service and the Treasury Department, which would not interfere with the main operation of the easement program."
+  ],
+  "s": "McLaughlin 2010, p. 13. Verified verbatim (finding s17/G2)."
+ },
+ "k29": {
+  "t": [
+   "STEPHEN J. SMALL, FEDERAL TAX LAW OF CONSERVATION EASEMENTS 2-2 to -3 (1997). Mr. Small worked for the Service in 1981 and 1982 and prepared the original drafts of the Treasury Regulations interpreting section 170(h)."
+  ],
+  "s": "McLaughlin 2010, p. 15. Verified verbatim (finding s17/G2)."
+ },
+ "k30": {
+  "t": [
+   "The Drafting Committee for the Uniform Conservation Easement Act (UCEA, or the Act) was appointed in 1978 and completed its work in 1981.",
+   "After at least six day-and-a-half long meetings of the Drafting Committee, the entire draft uniform act was read before the ULC and debated at two separate annual meetings."
+  ],
+  "s": "Burnett 2013, p. 3. Verified verbatim (finding s22/G2)."
+ },
+ "k31": {
+  "t": [
+   "So they were tending to reinvent the wheel.",
+   "The friend was Hank Foster, that is, Charles H. W. Foster, who a few years earlier, had briefly been president of The Nature Conservancy."
+  ],
+  "s": "Brewer 2004, p. 49. Verified verbatim (finding s23/B3)."
+ },
+ "k32": {
+  "t": [
+   "After incorporation in Boston in February 1982, the Land Trust Exchange (LTE) began almost immediately to publish a magazine, called Exchange. It is still called Exchange, although the organization changed its naine to Land Trust Alliance in 1990.",
+   "Allan Spader, a regional planner at the Lincoln Institute of Land Policy, had been heavily involved in organizing the Consultation."
+  ],
+  "s": "Brewer 2004, p. 190. Verified verbatim (finding s23/C2, s23/C9)."
+ },
+ "k33": {
+  "t": [
+   "The administration's recommendation was $45 million compared with $750 million in the last year of the Carter administration.",
+   "One of the effects of the resulting \"creative thinking\" was increased use of conservation easements."
+  ],
+  "s": "Brewer 2004, p. 52. Verified verbatim (finding s23/C8)."
+ },
+ "k34": {
+  "t": [
+   "Secretary of the Interior James Watt famously attempted to dismantle the Land and Water Conservation Fund (LWCF), the primary revenue source with which federal agencies purchase, improve, and maintain public lands (Vincent, 2006).",
+   "‘‘Reagan and Watt have given impetus to our efforts,’’ said Jean Hocker, a director of a land trust in Jackson Hole, Wyo. (Shabecoff, 1981)."
+  ],
+  "s": "Kay 2016, p. 12. Verified verbatim (finding s06/N3)."
+ },
+ "k35": {
+  "t": [
+   "In 1980, only 128,000 acres of land across the US were protected using conservation easement agreements (McLaughlin, 2004)."
+  ],
+  "s": "Kay 2016, p. 4. Verified verbatim (finding s06/B6)."
+ },
+ "k36": {
+  "t": [
+   "In 2007 alone, there was $2.18 billion in claimed deductions for conservation easement donations (Colinvaux, 2012: 3)."
+  ],
+  "s": "Kay 2016, p. 22. Verified verbatim (finding s06/C4)."
+ },
+ "k37": {
+  "t": [
+   "A financial meltdown occurred after only about a year and a half. The office at 3 Joy Street in Boston was closed, and the board asked Benjamin Emory to step in as executive director and try to turn LTE into a going concern. Emory, an M.B.A. and a founding board member of the LTE, had formerly been executive director of the Maine Coast Heritage Trust. To save money, the LTE office was moved to Emory's house at Bar Harbor, Maine."
+  ],
+  "s": "Brewer 2004, p. 191. Verified verbatim (finding s23/C8)."
+ },
+ "k38": {
+  "t": [
+   "The first book published by LTA was Appraising Easements, in 1984 (now in its third edition) in cooperation with the National Trust for Historic Preservation.",
+   "As of 2000, 560 land trusts had formally adopted the standards and practices."
+  ],
+  "s": "Brewer 2004, p. 193. Verified verbatim (finding s23/C7)."
+ },
+ "k39": {
+  "t": [
+   "over 3.4 million hectares of habitat was protected",
+   "at an upfront cost of more than US$5.8 billion"
+  ],
+  "s": "Fishburn et al. 2009a, p. 3. Verified verbatim (finding s03/C6)."
+ },
+ "k40": {
+  "t": [
+   "Easements began to be employed widely in the 1970s (Fig. 1).",
+   "to easements has been growing steadily and there is no evidence of"
+  ],
+  "s": "Fishburn et al. 2009b, p. 3. Verified verbatim (finding s04/C1)."
+ },
+ "k41": {
+  "t": [
+   "on land transactions has continued to grow",
+   "the organization has grown, it has become able to"
+  ],
+  "s": "Fishburn et al. 2009a, p. 6. Verified verbatim (finding s03/C1)."
+ },
+ "k42": {
+  "t": [
+   "TNC held 1,608 parcels subject to conservation easements granted in the favor of TNC.",
+   "For the fiscal year ended June 30, 2004, TNC's financial statements reported a line item in the balance sheet for \"conservation easements\" in the amount of $795,812,000."
+  ],
+  "s": "Senate Finance Committee 2005, p. 1. Verified verbatim (finding s13/T2, s13/C1)."
+ },
+ "k43": {
+  "t": [
+   "TNC commenced its Trade Lands program in 1981.",
+   "Between 1981 and 2003, TNC raised over $180 million from trade lands sales."
+  ],
+  "s": "Senate Finance Committee 2005, p. 36. Verified verbatim (finding s13/C2, s13/C4)."
+ },
+ "k44": {
+  "t": [
+   "This policy does not specify the dollar amount of the fund required because the level of expense that may reasonably be anticipated will vary from property to property, but provides an amount equal to 20 percent of the value of the property be set aside where the circumstances are such that a more precise estimate of needed funding is impractical.",
+   "TNC maintains specific stewardship funds for specific properties and also maintains over 400 endowments totaling over $700 million in the aggregate that are expected to continue in perpetuity to be used for monitoring and enforcement of easements."
+  ],
+  "s": "Senate Finance Committee 2005, p. 7. Verified verbatim (finding s13/C5)."
+ },
+ "k45": {
+  "t": [
+   "In May of 2003, the Post began printing a series of articles that were critical of nonprofit land-holding environmental groups and land trust organizations, specifically The Nature Conservancy (TNC)"
+  ],
+  "s": "Felmlee 2009, p. 16. Verified verbatim (finding s02/C2)."
+ },
+ "k46": {
+  "t": [
+   "In May 2003, following The Washington Post series, TNC announced the suspension of certain activities until its next regularly scheduled Board meeting that was held on June 13, 2003."
+  ],
+  "s": "Senate Finance Committee 2005, p. 41. Verified verbatim (finding s13/C2)."
+ },
+ "k47": {
+  "t": [
+   "TNC failed to enforce the conservation easements on Roanoke Island Marshes (Guthrie), North Carolina."
+  ],
+  "s": "Senate Finance Committee 2005, p. 4. Verified verbatim (finding s13/R1)."
+ },
+ "k48": {
+  "t": [
+   "Of the 75 items, at least 34 items appeared to be items that were requested by the owner of the land or benefited the owner based on the brief description provided in the chart.",
+   "TNC submitted to the Committee a chart of 75 conservation easement modifications completed during the ten year period July 1, 1994, through June 30, 2003."
+  ],
+  "s": "Senate Finance Committee 2005, p. 6. Verified verbatim (finding s13/R1)."
+ },
+ "k49": {
+  "t": [
+   "In-kind contributions (consisting of all property other than cash, including land and conservation easements) represented approximately 29 percent of the aggregate contributions during this period, and comprised as little as 16 percent and as much as 42 percent, of total contributions in a single year.",
+   "Totals 2529.1 70.6% 1055.7 29.4% 3584.8 (1993 to 2002)"
+  ],
+  "s": "Senate Finance Committee 2005, p. 35. Verified verbatim (finding s13/N2)."
+ },
+ "k50": {
+  "t": [
+   "Our analysis of data from 119 easements held by The Nature Conservancy (TNC),spanning eight states and 20 years (1984-2004), is the first study to examine temporal patterns in the stated goals of, and activities allowed under, conservation easements.",
+   "to over 5million acres (LTA2004). However, easements"
+  ],
+  "s": "Kiesecker et al. 2007, pp. 2, 6. Verified verbatim (finding s15/T2)."
+ },
+ "k51": {
+  "t": [
+   "we surveyed staff responsible for 119 conservation easements established by the largest nonprofit easement holder, The Nature Conservancy, between 1985 and 2004.",
+   "Some residential or commercial use, new structures, or subdivision of the property were permitted on 85% of sampled conservation easements."
+  ],
+  "s": "Rissman et al. 2007, p. 1. Verified verbatim (finding s14/R1)."
+ },
+ "k52": {
+  "t": [
+   "These deals involve groups of investors forming partnerships that buy land with the intent of donating easements for financial gain.",
+   "The most recent wave of public scrutiny over conservation easements concerns the rising use of so-called syndicated easements since 2012 (Elkind 2017, Looney 2017)."
+  ],
+  "s": "Parker & Thurman 2019, p. 7. Verified verbatim (finding s10/C8)."
+ },
+ "k53": {
+  "t": [
+   "the Board of Governors announced the formation of the Governance Advisory Panel in September 2003."
+  ],
+  "s": "Senate Finance Committee 2005, p. 42. Verified verbatim (finding s13/C9)."
+ },
+ "k54": {
+  "t": [
+   "The panel recommended that TNC hire a permanent Compliance Director to implement programs to ensure that TNC operates in accordance with the law and its policies."
+  ],
+  "s": "Senate Finance Committee 2005, p. 45. Verified verbatim (finding s13/R1)."
+ },
+ "k55": {
+  "t": [
+   "it recommended that TNC refuse to sign a Form 8283 (Noncash Charitable Contributions), unless the donor's appraiser is state-certified, has not been barred from practicing before the Internal Revenue Service, and is experienced at appraising conservation lands and easements.",
+   "put in place careful, systemic and strict procedures that will ensure compliance with all aspects of the spirit and letter of the rules for charitable contributions of conservation donations, with particular emphasis on appraisals."
+  ],
+  "s": "Senate Finance Committee 2005, p. 43. Verified verbatim (finding s13/R2)."
+ },
+ "k56": {
+  "t": [
+   "\"We cannot allow a few bad apples to stop thousands of land owners, working farmers and ranchers, and local communities from protecting America's natural areas and landscapes,\" Rand Wentworth, president of the Washington-based (LTA) alliance, said in a statement. \"Accreditation can meet two important goals-to build strong and enduring land trusts and to create a seal of approval that publicly recognizes their good work.\""
+  ],
+  "s": "Felmlee 2009, p. 25. Verified verbatim (finding s02/N3)."
+ },
+ "k57": {
+  "t": [
+   "Throughout 2005 and 2006, the LTA developed and established the LTAC as a separate nonprofit entity that would be dedicated to the planning, implementation, and enforcement of land trust accreditation.",
+   "The first application filings for accreditation took place in early 2008 and 39 of 67 individual land trust applicants were formally accredited during a September 19, 2008 ceremony at the LTA's annual national conference"
+  ],
+  "s": "Felmlee 2009, p. 17. Verified verbatim (finding s02/C2)."
+ },
+ "k58": {
+  "t": [
+   "Currently there are approximately 1,700 land trusts in the US, which have protected 47 million acres of land for purposes including biodiversity, natural habitat, agriculture, forests, recreation, wetlands, urban parks, historic, scenic and cultural values and related purposes (Land Trust Alliance, 2010 National Land Trust Census Report, 2010)."
+  ],
+  "s": "Johnson 2014, p. 2. Verified verbatim (finding s20/T2)."
+ },
+ "k59": {
+  "t": [
+   "According to the National Conservation Easement Database (2026), as of February 2026, approximately 38 million acres (15.3 m ha) were protected under 221,256 easements.",
+   "According to the Land Trust Alliance (2026), as of January 2026, its 948 members collectively were protecting about 61.07 million acres (24.7 m ha) (owned outright or under easement), an area reputedly larger than all US national parks combined."
+  ],
+  "s": "Richardson et al. 2026, p. 39. Verified verbatim (finding s12/T2)."
+ },
+ "k60": {
+  "t": [
+   "Others have decried the arrogance of current generations in permanently conserving land given our limited understanding of the preferences of future generations.",
+   "Still others have argued that perpetual conservation easements create rigid property structures, lock in a single landowner's preferences, and are ill-suited to the adaptive management needed to respond to environmental changes."
+  ],
+  "s": "Cheever & McLaughlin 2015, p. 78. Verified verbatim (finding s19/R2)."
+ },
+ "k61": {
+  "t": [
+   "Jay (2012: 4) argues that clear and consistent legislative guidance around easement modification and termination is essential for 'protecting the integrity and perpetual nature of conservation easements'.",
+   "Other authors (e.g. Teague, 2022) have proposed extending the US tax benefits to landholders who donate a fixed-term conservation easement that can be negotiated to address new circumstances, such as those related to climate change."
+  ],
+  "s": "Richardson et al. 2026, p. 51. Verified verbatim (finding s12/R2)."
+ }
+};
+
+  const svgel = (n, at) => { const e = document.createElementNS("http://www.w3.org/2000/svg", n); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const tip = document.getElementById("tip");
+  const tipShow = (ev, html) => { tip.style.display = "block"; tip.style.left = (ev.clientX + 14) + "px"; tip.style.top = (ev.clientY - 10) + "px"; tip.innerHTML = html; };
+  const tipHide = () => tip.style.display = "none";
+
+  // ---------- quote popover ----------
+  const pop = document.getElementById("pop");
+  document.addEventListener("click", (ev) => {
+    const c = ev.target.closest(".cite");
+    if (c) {
+      const q = QUOTES[c.dataset.q];
+      if (q) {
+        const wrap = pop.querySelector(".qwrap");
+        wrap.innerHTML = "";
+        q.t.forEach(t => { const p = document.createElement("p"); p.className = "q"; p.textContent = t; wrap.appendChild(p); });
+        pop.querySelector(".src").textContent = q.s;
+        pop.style.display = "block";
+        const r = c.getBoundingClientRect();
+        const px = Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 20);
+        pop.style.left = Math.max(20, px) + "px";
+        pop.style.top = (r.bottom + window.scrollY + 8) + "px";
+      }
+      ev.stopPropagation();
+      return;
+    }
+    if (!ev.target.closest("#pop")) pop.style.display = "none";
+  });
+  pop.querySelector(".close").addEventListener("click", () => pop.style.display = "none");
+  document.addEventListener("keydown", ev => { if (ev.key === "Escape") pop.style.display = "none"; });
+
+  // ---------- pattern tags ----------
+  const FAMS = { actor: "--green", path: "--blue", watch: "--amber" };
+  const GLYPH = { actor: "●", path: "◆", watch: "▲" };
+  const TAGDEFS = [
+    { tag: "doer", label: "Doer at scale", fam: "actor" },
+    { tag: "payer", label: "Payer at scale", fam: "actor" },
+    { tag: "newpayer", label: "New payer at scale", fam: "actor" },
+    { tag: "policy", label: "Policy change", fam: "path" },
+    { tag: "motivating", label: "Motivating & mobilizing", fam: "path" },
+    { tag: "replication", label: "Replication", fam: "path" },
+    { tag: "standardization", label: "Standardization", fam: "path" },
+    { tag: "networking", label: "Strategic networking", fam: "path" },
+    { tag: "crisis", label: "Crisis opening", fam: "path" },
+    { tag: "fieldstd", label: "Field standards", fam: "path" },
+    { tag: "exit", label: "Doer exits", fam: "watch" },
+    { tag: "purgatory", label: "Pilot purgatory", fam: "watch" },
+    { tag: "neardeath", label: "Near-death", fam: "watch" },
+    { tag: "cost", label: "Cost of scale", fam: "watch" },
+    { tag: "quality", label: "Quality debt", fam: "watch" },
+    { tag: "consolidation", label: "Consolidation", fam: "watch" },
+    { tag: "openq", label: "Open question", fam: "watch" },
+  ];
+
+  function flash(el) { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600); }
+  function jumpToTag(tag) {
+    const els = [...document.querySelectorAll(`.tagged[data-tags~="${CSS.escape(tag)}"]`)];
+    if (!els.length) return;
+    const next = els.find(e => e.getBoundingClientRect().top > 350) || els[0];
+    next.scrollIntoView();
+    flash(next);
+  }
+  function jumpToId(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView();
+    if (id.startsWith("t-")) flash(el);
+  }
+  document.addEventListener("click", ev => {
+    const sh = ev.target.closest("[data-tag]");
+    if (sh && !ev.target.closest("#finderpanel")) jumpToTag(sh.dataset.tag);
+  });
+
+  // ---------- finder panel ----------
+  const fbtn = document.getElementById("finderbtn"), fpanel = document.getElementById("finderpanel");
+  function buildFinder() {
+    fpanel.innerHTML = "";
+    const groups = { actor: "Actors", path: "Pathways", watch: "Costs and signals" };
+    for (const fam in groups) {
+      const g = document.createElement("div");
+      g.className = "fgroup";
+      g.innerHTML = `<h4>${groups[fam]}</h4>`;
+      TAGDEFS.filter(d => d.fam === fam).forEach(d => {
+        const n = document.querySelectorAll(`.tagged[data-tags~="${d.tag}"]`).length;
+        if (!n) return;
+        const b = document.createElement("button");
+        b.className = "fitem " + fam;
+        b.innerHTML = `${GLYPH[fam]} ${d.label} <small>${n > 1 ? "×" + n : ""}</small>`;
+        b.addEventListener("click", () => { toggleFinder(false); requestAnimationFrame(() => requestAnimationFrame(() => jumpToTag(d.tag))); });
+        g.appendChild(b);
+      });
+      fpanel.appendChild(g);
+    }
+  }
+  function toggleFinder(open) {
+    const to = open !== undefined ? open : fpanel.classList.contains("hidden");
+    fpanel.classList.toggle("hidden", !to);
+    fbtn.setAttribute("aria-expanded", to);
+    fbtn.textContent = to ? "Find a pattern ▴" : "Find a pattern ▾";
+  }
+  fbtn.addEventListener("click", () => toggleFinder());
+
+  // ---------- master curve: one unified set of markers ----------
+  // fam: null = plain milestone (neutral); otherwise colored + shaped by family
+  const MS = [
+    { sx: 0.055, y: "1891", t: "First land trust", fam: null, tgt: "ch-or" },
+    { sx: 0.15,  y: "1938", t: "Doer and payer at scale: the Park Service, alone", fam: "actor", tgt: "t-nps" },
+    { sx: 0.215, y: "1951", t: "Wisconsin proves the price point", fam: null, tgt: "p-wisc" },
+    { sx: 0.262, y: "1950s", t: "The federal doer exits", fam: "watch", tgt: "t-npsexit" },
+    { sx: 0.296, y: "1959", t: "Sixty-eight years in: pilot purgatory", fam: "watch", tgt: "t-purgatory" },
+    { sx: 0.320, y: "1959", t: "Whyte makes the public case", fam: "path", tgt: "t-whyte" },
+    { sx: 0.340, y: "1959", t: "Policy change: California's statute", fam: "path", tgt: "t-farr" },
+    { sx: 0.362, y: "1964", t: "Policy change, and a new payer at scale: the IRS", fam: "actor", tgt: "t-irs" },
+    { sx: 0.46,  y: "1969", t: "Replication, state by state", fam: "path", tgt: "t-spread" },
+    { sx: 0.578, y: "1976", t: "Policy change: Congress writes it into law", fam: "path", tgt: "t-taxcode" },
+    { sx: 0.607, y: "1980", t: "Policy change: section 170(h) made permanent", fam: "path", tgt: "t-170h" },
+    { sx: 0.632, y: "1981", t: "Standardization: one model law for every state", fam: "path", tgt: "t-ucea" },
+    { sx: 0.655, y: "1981", t: "Strategic networking: the movement organizes", fam: "path", tgt: "t-browne" },
+    { sx: 0.685, y: "1981", t: "Crisis opening: the LWCF cuts", fam: "path", tgt: "t-watt" },
+    { sx: 0.722, y: "1983", t: "Doers at scale, and a near-death", fam: "actor", tgt: "t-doers" },
+    { sx: 0.752, y: "1987", t: "The boom: replication at its fastest", fam: "path", tgt: "t-boom" },
+    { sx: 0.79,  y: "2003", t: "The cost of scale arrives", fam: "watch", tgt: "t-cost" },
+    { sx: 0.822, y: "2007", t: "Payer at scale: the tax code", fam: "actor", tgt: "t-payer" },
+    { sx: 0.848, y: "2007", t: "Quality debt documented", fam: "watch", tgt: "t-quality" },
+    { sx: 0.876, y: "2008", t: "Field standards: accreditation", fam: "path", tgt: "t-accred" },
+    { sx: 0.917, y: "2015", t: "Consolidation", fam: "watch", tgt: "t-consol" },
+    { sx: 0.958, y: "2026", t: "At scale, with one open question", fam: "watch", tgt: "t-open" },
+  ];
+  const SW = 980, SH = 252, STOP = 34, SBOT = 32;
+  const plotH = SH - STOP - SBOT;
+  const SX = f => 18 + f * (SW - 36);
+  const impact = f => Math.pow(f, 3.4) * 0.96 + 0.02;
+  const SY = f => STOP + plotH - impact(f) * plotH;
+  let msNodes = [];
+
+  function markerShape(fam, x, y) {
+    if (fam === "actor") return svgel("circle", { cx: x, cy: y, r: 5.5, fill: css("--green"), stroke: css("--bg"), "stroke-width": 2 });
+    if (fam === "path") return svgel("path", { d: `M ${x} ${y - 6.5} L ${x + 6.5} ${y} L ${x} ${y + 6.5} L ${x - 6.5} ${y} Z`, fill: css("--blue"), stroke: css("--bg"), "stroke-width": 1.8 });
+    if (fam === "watch") return svgel("path", { d: `M ${x} ${y - 6.5} L ${x + 6} ${y + 4.5} L ${x - 6} ${y + 4.5} Z`, fill: css("--amber"), stroke: css("--bg"), "stroke-width": 1.8 });
+    return svgel("circle", { cx: x, cy: y, r: 4, fill: css("--curve"), stroke: css("--bg"), "stroke-width": 2 });
+  }
+
+  function drawMaster() {
+    const host = document.getElementById("storychart");
+    host.innerHTML = ""; msNodes = [];
+    const svg = svgel("svg", { viewBox: `0 0 ${SW} ${SH}`, width: "100%", role: "img",
+      "aria-label": "The journey curve: Emerging, Validating, and Scaling stages with two inflection-point windows and clickable moments colored by pattern family" });
+    host.appendChild(svg);
+    const zones = [
+      { x0: .02, x1: .30, c: css("--band-e"), label: "EMERGING", dur: "68 YEARS" },
+      { x0: .375, x1: .555, c: css("--band-v"), label: "VALIDATING", dur: "≈11 YEARS" },
+      { x0: .665, x1: .985, c: css("--band-s"), label: "SCALING", dur: "44 YEARS, ONGOING" },
+    ];
+    const gatesb = [
+      { x0: .30, x1: .375, label: "1959–65", top: "INFLECTION 1" },
+      { x0: .555, x1: .665, label: "1976–82", top: "INFLECTION 2" },
+    ];
+    for (const z of zones) {
+      svg.appendChild(svgel("rect", { x: SX(z.x0), y: 8, width: SX(z.x1) - SX(z.x0), height: SH - 22, fill: z.c }));
+      const t1 = svgel("text", { x: (SX(z.x0) + SX(z.x1)) / 2, y: 22, "text-anchor": "middle", "font-size": 12, "font-weight": 700, "letter-spacing": "2", fill: css("--ink") });
+      t1.textContent = z.label; svg.appendChild(t1);
+      const t3 = svgel("text", { x: (SX(z.x0) + SX(z.x1)) / 2, y: SH - 6, "text-anchor": "middle", "font-size": 9.5, "font-weight": 600, "letter-spacing": ".8", fill: css("--muted") });
+      t3.textContent = z.dur; svg.appendChild(t3);
+    }
+    for (const g of gatesb) {
+      svg.appendChild(svgel("rect", { x: SX(g.x0), y: 8, width: SX(g.x1) - SX(g.x0), height: SH - 22, fill: css("--gateband") }));
+      for (const gx of [g.x0, g.x1])
+        svg.appendChild(svgel("line", { x1: SX(gx), x2: SX(gx), y1: 8, y2: SH - 14, stroke: css("--gate"), "stroke-width": 1.2, "stroke-dasharray": "1.5 4.5" }));
+      const gd = svgel("text", { x: (SX(g.x0) + SX(g.x1)) / 2, y: SH - 6, "text-anchor": "middle", "font-size": 9.5, "font-weight": 600, fill: css("--ink2") });
+      gd.textContent = g.label; svg.appendChild(gd);
+      const gl = svgel("text", { x: (SX(g.x0) + SX(g.x1)) / 2, y: 22, "text-anchor": "middle", "font-size": 8.5, "font-weight": 700, "letter-spacing": ".8", fill: css("--muted") });
+      gl.textContent = g.top; svg.appendChild(gl);
+    }
+    let d = "";
+    for (let i = 0; i <= 120; i++) { const f = 0.02 + (0.962 - 0.02) * i / 120; d += (i ? "L" : "M") + SX(f).toFixed(1) + " " + SY(f).toFixed(1) + " "; }
+    svg.appendChild(svgel("path", { d, fill: "none", stroke: css("--curve"), "stroke-width": 2.8, "stroke-linecap": "round" }));
+    svg.appendChild(svgel("path", { d: `M ${SX(0.962)} ${SY(0.962)} l -13 2 l 5 -7 z`, fill: css("--curve") }));
+
+    MS.forEach((m, i) => {
+      const x = SX(m.sx), y = SY(m.sx);
+      const g = svgel("g", { class: "ms", tabindex: 0, role: "button", "aria-label": m.y + ": " + m.t });
+      g.appendChild(svgel("circle", { cx: x, cy: y, r: 13, fill: "transparent" }));
+      const mark = markerShape(m.fam, x, y);
+      g.appendChild(mark);
+      const lab = svgel("text", { x, y: y + (i % 2 ? 21 : -12), "text-anchor": "middle", "font-size": 9.5, "font-weight": 600, fill: css("--ink2") });
+      lab.textContent = m.y; svg.appendChild(lab);
+      const act = () => jumpToId(m.tgt);
+      g.addEventListener("click", act);
+      g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); act(); } });
+      g.addEventListener("mousemove", ev => tipShow(ev, `<b>${m.y}</b> ${m.t}`));
+      g.addEventListener("mouseleave", tipHide);
+      svg.appendChild(g);
+      msNodes.push(mark);
+    });
+  }
+
+  // scroll-spy: emphasize current chapter's markers
+  function spy() {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const ids = (en.target.dataset.ms || "").split(",").map(Number);
+        msNodes.forEach((n, i) => {
+          const on = ids.includes(i);
+          if (n.tagName === "circle") n.setAttribute("r", on ? (n.getAttribute("fill") === css("--curve") ? 5.5 : 7.5) : (n.getAttribute("fill") === css("--curve") ? 4 : 5.5));
+          n.setAttribute("opacity", on ? 1 : 0.72);
+        });
+      });
+    }, { rootMargin: "-30% 0px -55% 0px" });
+    document.querySelectorAll(".chapter").forEach(c => obs.observe(c));
+  }
+
+  // ---------- inline figures ----------
+  const acresLTA = [
+    { y: 1980, v: 0.128, n: "128,000 acres. McLaughlin 2005 / Kay 2016, from LTA data." },
+    { y: 1990, v: 0.456, n: "456,000 acres. McLaughlin 2005, from LTA data." },
+    { y: 2000, v: 2.5, n: "2.5 million acres. LTA census, cited in four sources." },
+    { y: 2005, v: 6.113, n: "6,113,108 acres. LTA 2015 Census Report." },
+    { y: 2010, v: 12.837, n: "12,837,451 acres. LTA Conservation Progress page (latest revision)." },
+    { y: 2015, v: 16.572, n: "16,572,307 acres. LTA Conservation Progress page (latest revision)." },
+    { y: 2020, v: 20.237, n: "20,236,888 acres. LTA 2020 National Land Trust Census." },
+  ];
+  const acresNCED = [
+    { y: 2014, v: 22.2, n: "22.2M acres recorded (NCED estimated 40M in total). Cheever & McLaughlin 2015." },
+    { y: 2026, v: 38.0, n: "About 38M acres, 221,256 easements. Richardson et al. 2026, from NCED." },
+  ];
+  const trusts = [
+    { y: 1940, v: 30, n: "30 or more per LTA lineage; Brewer adjusts to about 19." },
+    { y: 1950, v: 53, n: "53 per LTA census; Brewer suggests about 50." },
+    { y: 1965, v: 132, n: "About 132. Brewer 2004, p. 53." },
+    { y: 1975, v: 308, n: "About 308. Brewer 2004, p. 53." },
+    { y: 1981, v: 404, n: "404 reported at the first census (revised 431; Brewer adjusts to about 370)." },
+    { y: 1984, v: 535, n: "535. LTA census, via Parker 2019." },
+    { y: 1990, v: 885, n: "885. LTA census, via Parker 2019." },
+    { y: 2000, v: 1263, n: "1,263. LTA 2000 census, via Brewer 2004." },
+    { y: 2005, v: 1667, n: "More than 1,650. LTA 2005 census." },
+    { y: 2010, v: 1723, n: "1,723. LTA census (verified against LTA publications)." },
+    { y: 2015, v: 1363, n: "1,363. LTA 2015 census." },
+    { y: 2020, v: 1281, n: "1,281. LTA 2020 census." },
+  ];
+
+  function lineFig(hostId, series, opts) {
+    const FW = 900, FH = 260, PL = 56, PR = 30, PT = 18, PB = 34;
+    const host = document.getElementById(hostId);
+    host.innerHTML = "";
+    const svg = svgel("svg", { viewBox: `0 0 ${FW} ${FH}`, width: "100%", role: "img", "aria-label": opts.aria });
+    host.appendChild(svg);
+    const X = y => PL + (y - opts.x0) / (opts.x1 - opts.x0) * (FW - PL - PR);
+    const Y = v => PT + (FH - PT - PB) * (1 - v / opts.max);
+    for (const t of opts.ticks) {
+      svg.appendChild(svgel("line", { x1: PL, x2: FW - PR, y1: Y(t), y2: Y(t), stroke: css("--grid"), "stroke-width": 1 }));
+      const lb = svgel("text", { x: PL - 8, y: Y(t) + 3.5, "text-anchor": "end", "font-size": 10.5, fill: css("--muted") });
+      lb.textContent = opts.fmt(t); svg.appendChild(lb);
+    }
+    for (let yr = opts.xt0; yr <= opts.x1; yr += opts.xstep) {
+      const t = svgel("text", { x: X(yr), y: FH - 12, "text-anchor": "middle", "font-size": 10.5, fill: css("--muted") });
+      t.textContent = yr; svg.appendChild(t);
+    }
+    series.forEach(s => {
+      const d = s.pts.map((p, i) => (i ? "L" : "M") + X(p.y).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+      svg.appendChild(svgel("path", { d, fill: "none", stroke: s.color, "stroke-width": 2.4, "stroke-dasharray": s.dash || "none", "stroke-linejoin": "round", "stroke-linecap": "round" }));
+      s.pts.forEach(p => {
+        const g = svgel("g", {});
+        g.appendChild(svgel("circle", { cx: X(p.y), cy: Y(p.v), r: 10, fill: "transparent" }));
+        g.appendChild(svgel("circle", { cx: X(p.y), cy: Y(p.v), r: 4, fill: s.hollow ? "none" : s.color, stroke: s.hollow ? s.color : css("--bg"), "stroke-width": 2 }));
+        g.addEventListener("mousemove", ev => tipShow(ev, `<b>${p.y}</b><br>${p.n}`));
+        g.addEventListener("mouseleave", tipHide);
+        svg.appendChild(g);
+      });
+      if (s.label) {
+        const last = s.pts[s.pts.length - 1];
+        const lb = svgel("text", { x: X(last.y) + 8, y: Y(last.v) + 4, "font-size": 10.5, fill: css("--ink2") });
+        lb.textContent = s.label; svg.appendChild(lb);
+      }
+    });
+  }
+
+  function drawFigures() {
+    lineFig("fig-acres", [
+      { pts: acresLTA, color: css("--blue"), label: "Land trusts (LTA)" },
+      { pts: acresNCED, color: css("--blue"), dash: "7 6", label: "All holders (NCED)" },
+    ], { x0: 1975, x1: 2030, xt0: 1980, xstep: 10, max: 40, ticks: [0, 10, 20, 30, 40], fmt: t => t + "M", aria: "Acres under easement, 1980 to 2020, with the broader all-holders series from 2014" });
+    lineFig("fig-trusts", [
+      { pts: trusts, color: css("--amber") },
+      { pts: [{ y: 2026, v: 948, n: "948 Alliance members in 2026, a narrower measure than active trusts." }], color: css("--amber"), hollow: true, label: "948 members" },
+    ], { x0: 1935, x1: 2030, xt0: 1940, xstep: 20, max: 1800, ticks: [0, 600, 1200, 1800], fmt: t => t.toLocaleString("en-US"), aria: "Active land trusts, 1940 to 2020, with 2026 membership shown separately" });
+  }
+
+  drawMaster(); drawFigures(); spy(); buildFinder();
+  document.querySelectorAll(".vidposter").forEach(v => {
+    const note = ev => { tipShow(ev.type === "keydown" ? { clientX: v.getBoundingClientRect().left + 40, clientY: v.getBoundingClientRect().top + 40 } : ev, "Placeholder. This interview has not been recorded yet."); setTimeout(tipHide, 1900); };
+    v.addEventListener("click", note);
+    v.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); note(ev); } });
+  });
+
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawMaster(); drawFigures(); });
+})();
+</script>
+
+</body>
+</html>
